@@ -11,6 +11,7 @@ services:
     name: qmind-api
     runtime: python
     region: oregon
+    rootDir: backend
     plan: free                       # <-- FREE tier (512MB RAM, spins down after 15 min idle)
     buildCommand: |
       pip install -r requirements.txt
@@ -26,7 +27,6 @@ services:
       # ---- External: paste your Upstash Redis URL ----
       # Format: rediss://default:xxx@xxx.upstash.io:6379
       - key: REDIS_URL
-        sync: false
         value: ""                    # leave empty to skip Redis (in-memory job tracking)
 
       # ---- AI provider keys (bring your own) ----
@@ -34,15 +34,25 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
+      - key: GOOGLE_API_KEY          # Gemini (https://aistudio.google.com/apikey)
+        value: ""
+      - key: HUGGINGFACE_API_KEY     # https://huggingface.co/settings/tokens
+        value: ""
+      - key: QWEN_API_KEY            # Alibaba DashScope (https://dashscope.console.aliyun.com/)
+        value: ""
+      - key: OLLAMA_BASE_URL         # Default: http://localhost:11434
+        value: "http://localhost:11434"
+      - key: OLLAMA_API_KEY          # For cloud-hosted Ollama (optional)
+        value: ""
 
       # ---- App config ----
       - key: API_KEY
         sync: false
-      - key: EMBEDDING_PROVIDER
+      - key: EMBEDDING_PROVIDER      # openai | ollama | huggingface | gemini | qwen
         value: openai
       - key: EMBEDDING_MODEL
         value: text-embedding-3-small
-      - key: DEFAULT_LLM_PROVIDER
+      - key: DEFAULT_LLM_PROVIDER    # openai | anthropic | ollama | gemini | huggingface | qwen
         value: openai
       - key: DEFAULT_LLM_MODEL
         value: gpt-4o
@@ -52,7 +62,6 @@ services:
       # Sign up at https://app.honcho.dev for $100 free credits.
       # Leave empty to disable (app works fine without it).
       - key: HONCHO_API_KEY
-        sync: false
         value: ""
       - key: HONCHO_WORKSPACE_ID
         value: qmind

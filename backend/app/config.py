@@ -31,18 +31,22 @@ class Settings(BaseSettings):
     secret_key: str = "dev-secret-key-change-me"
 
     # Embedding config
-    embedding_provider: str = "openai"  # openai | ollama
+    embedding_provider: str = "openai"  # openai | ollama | huggingface | gemini
     embedding_model: str = "text-embedding-3-small"
     embedding_dimensions: int = 1536
 
     # Default LLM config
-    default_llm_provider: str = "openai"  # openai | anthropic | ollama
+    default_llm_provider: str = "openai"  # openai | anthropic | ollama | gemini | huggingface | qwen
     default_llm_model: str = "gpt-4o"
 
     # Provider credentials
     openai_api_key: str = ""
     anthropic_api_key: str = ""
+    google_api_key: str = ""  # Gemini
+    huggingface_api_key: str = ""  # HuggingFace Inference API
+    qwen_api_key: str = ""  # Alibaba Cloud DashScope
     ollama_base_url: str = "http://localhost:11434"
+    ollama_api_key: str = ""  # For cloud-hosted Ollama (optional)
 
     # Chunking config
     chunk_size_tokens: int = 800

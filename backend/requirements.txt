@@ -18,3 +18,4 @@ pgvector==0.4.1
 python-jose[cryptography]==3.4.0
 passlib[bcrypt]==1.7.4
 honcho-ai>=0.1.0
+google-generativeai>=0.8.0
