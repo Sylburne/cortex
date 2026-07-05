@@ -1,0 +1,58 @@
+# ============================================================
+# QMind Render Blueprint — 100% FREE tier
+# ============================================================
+# External services (sign up separately, paste URLs in Render dashboard):
+#   - DATABASE_URL:   Neon free Postgres (https://neon.tech) — includes pgvector
+#   - REDIS_URL:      Upstash free Redis (https://upstash.com) — 10K cmds/day
+# ============================================================
+
+services:
+  - type: web
+    name: qmind-api
+    runtime: python
+    region: oregon
+    plan: free                       # <-- FREE tier (512MB RAM, spins down after 15 min idle)
+    buildCommand: |
+      pip install -r requirements.txt
+    startCommand: |
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
+    envVars:
+      # ---- External: paste your Neon connection string ----
+      # Format: postgresql://user:pass@ep-xxx.aws.neon.tech/qmind?sslmode=require
+      # The app auto-converts to postgresql+asyncpg:// internally
+      - key: DATABASE_URL
+        sync: false
+
+      # ---- External: paste your Upstash Redis URL ----
+      # Format: rediss://default:xxx@xxx.upstash.io:6379
+      - key: REDIS_URL
+        sync: false
+        value: ""                    # leave empty to skip Redis (in-memory job tracking)
+
+      # ---- AI provider keys (bring your own) ----
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+      # ---- App config ----
+      - key: API_KEY
+        sync: false
+      - key: EMBEDDING_PROVIDER
+        value: openai
+      - key: EMBEDDING_MODEL
+        value: text-embedding-3-small
+      - key: DEFAULT_LLM_PROVIDER
+        value: openai
+      - key: DEFAULT_LLM_MODEL
+        value: gpt-4o
+
+      # ---- Honcho Memory (OPTIONAL) ----
+      # Gives your AI persistent memory about each user across sessions.
+      # Sign up at https://app.honcho.dev for $100 free credits.
+      # Leave empty to disable (app works fine without it).
+      - key: HONCHO_API_KEY
+        sync: false
+        value: ""
+      - key: HONCHO_WORKSPACE_ID
+        value: qmind
