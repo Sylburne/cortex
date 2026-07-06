@@ -21,7 +21,7 @@ def _to_asyncpg_url(url: str) -> str:
 
 class Settings(BaseSettings):
     # Database
-    database_url: str = "postgresql+asyncpg://localhost:5432/qmind"
+    database_url: str = "postgresql+asyncpg://localhost:5432/cortex"
 
     # Redis (empty string = use in-memory job tracking, no Redis)
     redis_url: str = ""
@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     # Honcho memory layer (optional — empty key disables)
     honcho_api_key: str = ""
     honcho_base_url: str = ""  # Leave empty for managed (api.honcho.dev)
-    honcho_workspace_id: str = "qmind"
+    honcho_workspace_id: str = "cortex"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

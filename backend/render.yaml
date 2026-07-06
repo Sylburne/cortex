@@ -1,5 +1,5 @@
 # ============================================================
-# QMind Render Blueprint — 100% FREE tier
+# Cortex Render Blueprint — 100% FREE tier
 # ============================================================
 # External services (sign up separately, paste URLs in Render dashboard):
 #   - DATABASE_URL:   Neon free Postgres (https://neon.tech) — includes pgvector
@@ -8,7 +8,7 @@
 
 services:
   - type: web
-    name: qmind-api
+    name: cortex-api
     runtime: python
     region: oregon
     rootDir: backend
@@ -19,7 +19,7 @@ services:
       uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
     envVars:
       # ---- External: paste your Neon connection string ----
-      # Format: postgresql://user:pass@ep-xxx.aws.neon.tech/qmind?sslmode=require
+      # Format: postgresql://user:pass@ep-xxx.aws.neon.tech/cortex?sslmode=require
       # The app auto-converts to postgresql+asyncpg:// internally
       - key: DATABASE_URL
         sync: false
@@ -64,4 +64,4 @@ services:
       - key: HONCHO_API_KEY
         value: ""
       - key: HONCHO_WORKSPACE_ID
-        value: qmind
+        value: cortex

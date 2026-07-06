@@ -2,7 +2,7 @@
 """Quick deployment verification script.
 
 Run after deploying to Render/Fly.io to confirm everything works:
-    python verify_deploy.py https://qmind-api.onrender.com
+    python verify_deploy.py https://cortex-api.onrender.com
 
 Or locally:
     python verify_deploy.py http://localhost:8000
@@ -37,7 +37,7 @@ def test(name: str, method: str, path: str, expected_status: int = 200, body: di
 
 
 print(f"\n{'='*60}")
-print(f"QMind Deployment Verification")
+print(f"Cortex Deployment Verification")
 print(f"{'='*60}")
 print(f"Base URL: {BASE_URL}\n")
 

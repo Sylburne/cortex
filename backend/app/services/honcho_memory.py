@@ -11,7 +11,7 @@ Setup:
 Env vars (optional — if empty, Honcho is skipped gracefully):
     HONCHO_API_KEY=your-key
     HONCHO_BASE_URL=https://api.honcho.dev   (or http://localhost:8000)
-    HONCHO_WORKSPACE_ID=qmind                (logical grouping)
+    HONCHO_WORKSPACE_ID=cortex               (logical grouping)
 """
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ async def store_message(user_id: str, session_id: str, role: str, content: str) 
             msg = peer.message(content)
         else:
             # For assistant messages, create an "assistant" peer
-            assistant = client.peer("qmind-assistant")
+            assistant = client.peer("cortex-assistant")
             msg = assistant.message(content)
 
         session.add_messages([msg])
@@ -120,7 +120,7 @@ async def get_user_insights(user_id: str, question: str) -> str | None:
         return None
 
 
-def to_openai_context(session_id: str, assistant_name: str = "qmind-assistant"):
+def to_openai_context(session_id: str, assistant_name: str = "cortex-assistant"):
     """Get Honcho session context as OpenAI-formatted messages.
 
     Returns a list of message dicts ready to inject into an OpenAI call,

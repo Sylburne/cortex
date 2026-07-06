@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="QMind API",
+    title="Cortex API",
     description="Personal knowledge base with RAG, vector search, and multi-provider AI",
     version="0.1.0",
     lifespan=lifespan,
@@ -74,7 +74,7 @@ app.include_router(memory.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
-    return {"service": "qmind", "version": "0.1.0", "status": "running", "honcho": honcho_memory.is_enabled()}
+    return {"service": "cortex", "version": "0.1.0", "status": "running", "honcho": honcho_memory.is_enabled()}
 
 
 @app.get("/health")

@@ -1,6 +1,6 @@
 # Fly.io free tier config
 # Free: 3 shared-cpu-1x VMs, 256MB each
-app = "qmind-api"
+app = "cortex-api"
 primary_region = "ord"
 
 [build]
