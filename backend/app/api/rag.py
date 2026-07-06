@@ -10,7 +10,7 @@ from app.api.auth import verify_api_key
 from app.config import settings
 from app.models.rag import RagSession, RagMessage
 from app.models.chunk import Chunk
-from app.schemas.rag import RagSessionCreate, RagSessionResponse, RagMessageRequest, RagMessageResponse, Citation
+from app.schemas.rag import RagSessionCreate, RagSessionResponse, RagSessionUpdate, RagMessageRequest, RagMessageResponse, Citation
 from app.services.embeddings import get_embedding_provider
 from app.services.rag_engine import generate_answer
 from app.services import honcho_memory
@@ -49,6 +49,28 @@ async def get_session(
     session = (await db.execute(q)).scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    return session
+
+
+@router.patch("/sessions/{session_id}", response_model=RagSessionResponse)
+async def update_session(
+    notebook_id: str,
+    session_id: str,
+    body: RagSessionUpdate,
+    owner_id: str = Depends(verify_api_key),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update session's provider and/or model."""
+    q = select(RagSession).where(RagSession.id == session_id, RagSession.notebook_id == notebook_id)
+    session = (await db.execute(q)).scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if body.provider:
+        session.provider = body.provider
+    if body.model:
+        session.model = body.model
+    await db.commit()
+    await db.refresh(session)
     return session
 
 
@@ -139,8 +161,12 @@ async def send_message(
         if user_context:
             system_prompt += f"\n\nUser context from memory: {user_context}"
 
+    # Determine provider/model: message-level override > session > config default
+    provider = body.provider or session.provider
+    model = body.model or session.model
+
     answer = await generate_answer(
-        provider=session.provider, model=session.model,
+        provider=provider, model=model,
         system_prompt=system_prompt, history=history,
         context_chunks=context_chunks, question=body.content,
     )
@@ -160,5 +186,5 @@ async def send_message(
 
     return RagMessageResponse(
         message_id=assistant_msg.id, content=answer,
-        citations=citations, provider=session.provider, model=session.model,
+        citations=citations, provider=provider, model=model,
     )

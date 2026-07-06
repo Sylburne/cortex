@@ -5,9 +5,17 @@ from datetime import datetime
 
 
 class RagSessionCreate(BaseModel):
+    provider: Optional[str] = None  # openai | anthropic | ollama | gemini | huggingface | qwen
+    model: Optional[str] = None  # e.g. gpt-4o, gemini-2.0-flash, qwen-plus
+    system_prompt: str = ""
+    # Optional: override provider/model mid-conversation
+    switch_provider: Optional[str] = None
+    switch_model: Optional[str] = None
+
+
+class RagSessionUpdate(BaseModel):
     provider: Optional[str] = None
     model: Optional[str] = None
-    system_prompt: str = ""
 
 
 class RagSessionResponse(BaseModel):
@@ -23,6 +31,9 @@ class RagSessionResponse(BaseModel):
 
 class RagMessageRequest(BaseModel):
     content: str
+    # Optional: switch provider/model for this specific message
+    provider: Optional[str] = None  # Override session provider for this message
+    model: Optional[str] = None  # Override session model for this message
 
 
 class Citation(BaseModel):
