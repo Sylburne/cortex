@@ -1,0 +1,4 @@
+Cortex is a personal knowledge base with AI-powered retrieval augmented generation (RAG).
+It supports multiple AI providers including Gemini, OpenAI, Anthropic, Qwen, HuggingFace, and Ollama.
+Users can upload documents, search through them using semantic search, and chat with their knowledge base.
+The system uses vector embeddings to find relevant content and provides AI-generated answers with citations.
