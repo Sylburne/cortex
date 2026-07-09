@@ -5,7 +5,7 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.database import engine, Base
-from app.api import notebooks, sources, search, rag, compile, memory
+from app.api import notebooks, sources, search, rag, compile, memory, review
 from app.services import honcho_memory
 
 
@@ -70,6 +70,7 @@ app.include_router(search.router, prefix="/api/v1")
 app.include_router(rag.router, prefix="/api/v1")
 app.include_router(compile.router, prefix="/api/v1")
 app.include_router(memory.router, prefix="/api/v1")
+app.include_router(review.router, prefix="/api/v1")
 
 
 @app.get("/")

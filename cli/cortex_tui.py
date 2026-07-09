@@ -105,6 +105,27 @@ class CortexClient:
                          headers=self.headers, json=body, timeout=120)
         r.raise_for_status()
         return r.json()
+    
+    def review_notebook(self, notebook_id, updated_notebook_id=None, instructions=None, provider=None, model=None):
+        body = {}
+        if updated_notebook_id:
+            body["updated_notebook_id"] = updated_notebook_id
+        if instructions:
+            body["instructions"] = instructions
+        if provider:
+            body["provider"] = provider
+        if model:
+            body["model"] = model
+        r = requests.post(f"{self.url}/api/v1/notebooks/{notebook_id}/review",
+                         headers=self.headers, json=body, timeout=180)
+        r.raise_for_status()
+        return r.json()
+    
+    def upload_review_results(self, notebook_id, target_notebook_id, review_response):
+        r = requests.post(f"{self.url}/api/v1/notebooks/{notebook_id}/review/upload-updated/{target_notebook_id}",
+                         headers=self.headers, json=review_response, timeout=120)
+        r.raise_for_status()
+        return r.json()
 
 client = CortexClient()
 
@@ -170,13 +191,14 @@ def show_main_menu():
     menu.add_row("[4]", "Chat with AI")
     menu.add_row("[5]", "Search Knowledge")
     menu.add_row("[6]", "Delete Notebook")
+    menu.add_row("[7]", "Review & Update Files")
     menu.add_row("[s]", "Server Status")
     menu.add_row("[q]", "Quit")
     
     console.print(Panel(menu, title="[bold]Main Menu[/bold]", box=ROUNDED, border_style="cyan"))
     console.print()
     
-    return Prompt.ask("  Select", choices=["1","2","3","4","5","6","s","q"], default="1")
+    return Prompt.ask("  Select", choices=["1","2","3","4","5","6","7","s","q"], default="1")
 
 def select_notebook(prompt="Select notebook"):
     """Returns notebook ID or None."""
@@ -507,6 +529,168 @@ def show_status():
     console.print()
     Prompt.ask("  Press Enter to continue")
 
+def review_mode():
+    """AI-powered file review and update generation."""
+    console.clear()
+    console.print(header())
+    console.print()
+    console.print(Panel.fit(
+        "[bold]Review & Update Files[/bold]\n\n"
+        "AI will review your notebook files and can:\n"
+        "- Compare with an updated notebook\n"
+        "- Generate improved/updated versions\n"
+        "- Apply your custom instructions",
+        box=ROUNDED, border_style="magenta"
+    ))
+    console.print()
+    
+    # Select original notebook
+    console.print("[bold]Step 1:[/bold] Select the original notebook")
+    original_id = select_notebook("Original notebook")
+    if not original_id:
+        return
+    
+    console.clear()
+    console.print(header())
+    console.print()
+    
+    # Ask if they want to compare with another notebook
+    compare = Confirm.ask("  Compare with an updated notebook?", default=False)
+    
+    updated_id = None
+    if compare:
+        console.print()
+        console.print("[bold]Step 2:[/bold] Select the updated notebook for comparison")
+        updated_id = select_notebook("Updated notebook")
+        if not updated_id:
+            console.print("[yellow]  No updated notebook selected, reviewing original only[/yellow]")
+            time.sleep(1)
+    
+    console.clear()
+    console.print(header())
+    console.print()
+    
+    # Get instructions
+    console.print("[bold]Step 3:[/bold] Review instructions (optional)")
+    console.print("[dim]  Examples: 'Improve clarity', 'Add more examples', 'Update for 2024'[/dim]")
+    instructions = Prompt.ask("  Instructions", default="")
+    
+    # Provider/model
+    console.print()
+    provider = Prompt.ask("  Provider", default="gemini")
+    model = Prompt.ask("  Model", default="gemini-2.0-flash")
+    
+    console.clear()
+    console.print(header())
+    console.print()
+    
+    # Run the review
+    console.print(Panel.fit(
+        f"[bold]Reviewing files...[/bold]\n\n"
+        f"Original: [cyan]{original_id[:12]}...[/cyan]\n"
+        f"Updated:  [cyan]{updated_id[:12] if updated_id else 'None'}...[/cyan]\n"
+        f"Provider: [green]{provider}/{model}[/green]",
+        box=ROUNDED, border_style="magenta"
+    ))
+    console.print()
+    
+    with console.status("[bold magenta]AI is reviewing files (this may take a minute)...[/bold magenta]"):
+        try:
+            result = client.review_notebook(
+                original_id,
+                updated_notebook_id=updated_id,
+                instructions=instructions if instructions else None,
+                provider=provider,
+                model=model
+            )
+        except requests.exceptions.RequestException as e:
+            console.print(f"[red]  Review failed: {e}[/red]")
+            Prompt.ask("  Press Enter to continue")
+            return
+    
+    # Display results
+    console.clear()
+    console.print(header())
+    console.print()
+    
+    summary = result.get("summary", "No summary")
+    console.print(Panel(
+        Markdown(summary),
+        title="[bold magenta]Review Summary[/bold magenta]",
+        border_style="magenta",
+        box=ROUNDED,
+        padding=(1, 2)
+    ))
+    console.print()
+    
+    updated_files = result.get("updated_files", [])
+    if not updated_files:
+        console.print("[yellow]  No updated files generated.[/yellow]")
+        Prompt.ask("  Press Enter to continue")
+        return
+    
+    console.print(f"[bold]Generated {len(updated_files)} updated file(s):[/bold]")
+    console.print()
+    
+    for i, f in enumerate(updated_files, 1):
+        filename = f.get("filename", "unknown")
+        changes = f.get("changes", "No changes description")
+        content_preview = f.get("content", "")[:200]
+        
+        file_panel = Panel(
+            f"[dim]{content_preview}...[/dim]",
+            title=f"[{i}] [bold cyan]{filename}[/bold cyan]",
+            subtitle=f"[italic]{changes}[/italic]",
+            border_style="cyan",
+            box=ROUNDED,
+            padding=(1, 2)
+        )
+        console.print(file_panel)
+        console.print()
+    
+    # Ask if they want to save the results
+    console.print()
+    if Confirm.ask("  Save updated files to a notebook?", default=True):
+        console.print()
+        console.print("[bold]Select target notebook for updated files:[/bold]")
+        
+        # Option to create new or use existing
+        target_choice = Prompt.ask(
+            "  Target",
+            choices=["existing", "new"],
+            default="new"
+        )
+        
+        if target_choice == "new":
+            name = Prompt.ask("  New notebook name", default="Updated Files")
+            with console.status("[bold cyan]Creating notebook...[/bold cyan]"):
+                new_nb = client.create_notebook(name)
+                target_id = new_nb["id"]
+            console.print(f"  [green]Created notebook: {target_id}[/green]")
+        else:
+            target_id = select_notebook("Target notebook")
+            if not target_id:
+                console.print("[yellow]  No target selected, files not saved[/yellow]")
+                Prompt.ask("  Press Enter to continue")
+                return
+        
+        # Upload the results
+        with console.status("[bold cyan]Uploading updated files...[/bold cyan]"):
+            try:
+                upload_result = client.upload_review_results(original_id, target_id, result)
+                uploaded = upload_result.get("uploaded", [])
+                console.print()
+                console.print(Panel.fit(
+                    f"[bold green]Uploaded {len(uploaded)} file(s)![/bold green]\n\n"
+                    f"Target notebook: [cyan]{target_id}[/cyan]",
+                    box=ROUNDED, border_style="green"
+                ))
+            except requests.exceptions.RequestException as e:
+                console.print(f"[red]  Upload failed: {e}[/red]")
+    
+    console.print()
+    Prompt.ask("  Press Enter to continue")
+
 def main():
     # Check login
     if not client.load():
@@ -529,6 +713,8 @@ def main():
             search_mode()
         elif choice == "6":
             delete_notebook()
+        elif choice == "7":
+            review_mode()
         elif choice == "s":
             show_status()
         elif choice == "q":

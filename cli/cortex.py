@@ -224,6 +224,88 @@ def cmd_status(args):
         print(f"  Server:  unreachable ({e})")
     print("=====================================================")
 
+# ─── REVIEW ──────────────────────────────────────────────
+def cmd_review(args):
+    url, headers = get_client()
+    notebook_id = args.notebook
+    
+    print("=== Cortex Review ===================================")
+    print(f"  Original notebook: {notebook_id}")
+    if args.updated:
+        print(f"  Updated notebook:  {args.updated}")
+    if args.instructions:
+        print(f"  Instructions:      {args.instructions}")
+    print()
+    
+    # Build request body
+    body = {}
+    if args.updated:
+        body["updated_notebook_id"] = args.updated
+    if args.instructions:
+        body["instructions"] = args.instructions
+    if args.provider:
+        body["provider"] = args.provider
+    if args.model:
+        body["model"] = args.model
+    
+    print("  AI is reviewing files (this may take a minute)...")
+    print()
+    
+    try:
+        r = requests.post(
+            f"{url}/api/v1/notebooks/{notebook_id}/review",
+            headers=headers,
+            json=body,
+            timeout=180
+        )
+        r.raise_for_status()
+        result = r.json()
+    except requests.exceptions.RequestException as e:
+        print(f"  Error: {e}")
+        if hasattr(e, 'response') and e.response is not None:
+            print(f"  {e.response.text[:300]}")
+        return
+    
+    # Display results
+    print("  Summary:")
+    print(f"  {result.get('summary', 'No summary')}")
+    print()
+    
+    updated_files = result.get("updated_files", [])
+    if not updated_files:
+        print("  No updated files generated.")
+        return
+    
+    print(f"  Generated {len(updated_files)} updated file(s):")
+    print()
+    
+    for i, f in enumerate(updated_files, 1):
+        print(f"  [{i}] {f.get('filename', 'unknown')}")
+        print(f"      Changes: {f.get('changes', 'No description')}")
+        content = f.get("content", "")
+        print(f"      Preview: {content[:100]}...")
+        print()
+    
+    # Save to target if requested
+    if args.save_to:
+        print(f"  Saving to notebook: {args.save_to}")
+        try:
+            save_r = requests.post(
+                f"{url}/api/v1/notebooks/{notebook_id}/review/upload-updated/{args.save_to}",
+                headers=headers,
+                json=result,
+                timeout=120
+            )
+            save_r.raise_for_status()
+            uploaded = save_r.json().get("uploaded", [])
+            print(f"  Uploaded {len(uploaded)} file(s)!")
+        except requests.exceptions.RequestException as e:
+            print(f"  Upload failed: {e}")
+    else:
+        print("  Tip: Use --save-to NOTEBOOK_ID to save the updated files")
+    
+    print("=====================================================")
+
 # ─── MAIN ────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(
@@ -239,6 +321,8 @@ Examples:
   cortex chat NOTEBOOK_ID                               # Start chatting (interactive)
   cortex chat NOTEBOOK_ID --provider qwen --model qwen-plus  # Use Qwen
   cortex search NOTEBOOK_ID "machine learning"          # Search your knowledge
+  cortex review NOTEBOOK_ID                             # AI review files
+  cortex review NB1 --updated NB2 --save-to NB3         # Compare and save updates
   cortex status                                         # Check connection
         """
     )
@@ -280,6 +364,15 @@ Examples:
     # status
     sub.add_parser("status", help="Check connection status")
 
+    # review
+    p = sub.add_parser("review", help="AI review and update files")
+    p.add_argument("notebook", help="Original notebook ID")
+    p.add_argument("--updated", help="Updated notebook ID for comparison")
+    p.add_argument("--instructions", help="Custom instructions for the review")
+    p.add_argument("--provider", help="AI provider (gemini/openai/qwen/huggingface/ollama/anthropic)")
+    p.add_argument("--model", help="AI model name")
+    p.add_argument("--save-to", help="Target notebook ID to save updated files")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -295,6 +388,7 @@ Examples:
         "search": cmd_search,
         "chat": cmd_chat,
         "status": cmd_status,
+        "review": cmd_review,
     }
 
     try:
