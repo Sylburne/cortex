@@ -103,8 +103,10 @@ async def upload_source(
     if file_type in ("word", "pdf", "powerpoint"):
         try:
             raw_text = detect_and_parse(content, filename)
+            print(f"[upload] Parsed {file_type} file: {filename} -> {len(raw_text)} chars")
         except Exception as e:
             # Fallback to decoded text if parsing fails
+            print(f"[upload] Parse failed for {filename}: {e}")
             raw_text = content.decode("utf-8", errors="replace")
     else:
         raw_text = content.decode("utf-8", errors="replace")

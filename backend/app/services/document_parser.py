@@ -23,19 +23,26 @@ def detect_and_parse(content: bytes, filename: str) -> str:
 
 
 def _parse_docx(content: bytes) -> str:
-    from docx import Document
-    doc = Document(io.BytesIO(content))
-    paragraphs = []
-    for para in doc.paragraphs:
-        if para.text.strip():
-            paragraphs.append(para.text)
-    # Also extract tables
-    for table in doc.tables:
-        for row in table.rows:
-            cells = [cell.text.strip() for cell in row.cells]
-            if any(cells):
-                paragraphs.append(" | ".join(cells))
-    return "\n\n".join(paragraphs)
+    try:
+        from docx import Document
+        doc = Document(io.BytesIO(content))
+        paragraphs = []
+        for para in doc.paragraphs:
+            if para.text.strip():
+                paragraphs.append(para.text)
+        # Also extract tables
+        for table in doc.tables:
+            for row in table.rows:
+                cells = [cell.text.strip() for cell in row.cells]
+                if any(cells):
+                    paragraphs.append(" | ".join(cells))
+        return "\n\n".join(paragraphs)
+    except ImportError as e:
+        print(f"[docx_parser] ImportError: {e}")
+        raise
+    except Exception as e:
+        print(f"[docx_parser] Error: {e}")
+        raise
 
 
 def _parse_pdf(content: bytes) -> str:
