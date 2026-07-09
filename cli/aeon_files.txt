@@ -1,0 +1,200 @@
+﻿Project Aeon-Σ -  Complete Schematics and Design Documentation.docx
+Project Aeon-Σ -  Technical and Engineering Document Signal Integrity Simulation Report.docx
+Project Aeon-Σ -  Technical and Engineering Document Thermal Model Report v2.docx
+Project Aeon-Σ -  Technical Document Chaos Control Protocol (CCP).docx
+Project Aeon-Σ -  Technical Document Hardware - Software Interface Specification (HSIS).docx
+Project Aeon-Σ -  Technical Specification ChaosCode Q.docx
+Project Aeon-Σ -  Technical Specification Fractal Intake Manifold (The Harvester).docx
+Project Aeon-Σ -  Technical Specification Hypercycle Logic Core (The Processor).docx
+Project Aeon-Σ -  Technical Specification Optofluidic Vortex Rectifier (The Sorter).docx
+Project Aeon-Σ - 104-Week Master Operational Runbook and Resource Tracker.docx
+Project Aeon-Σ - Alternative Technical Pathways for Mitigating Decoherence.docx
+Project Aeon-Σ - Architecture Decision Records.docx
+Project Aeon-Σ - ASIC Verification Plan.docx
+Project Aeon-Σ - Backup and Disaster Recovery Plan.docx
+Project Aeon-Σ - BEC Lifetime and Reooling Analysis.docx
+Project Aeon-Σ - Benefits, Innovations, Insights, and Prospects.docx
+Project Aeon-Σ - Branding and Naming Clearance.docx
+Project Aeon-Σ - Budget Reconciliation Statement.docx
+Project Aeon-Σ - Capital Hardware and Consumables Plan.docx
+Project Aeon-Σ - Chaos as a Resource Alternative Approaches to Decoherence Suppression (v3.0).docx
+Project Aeon-Σ - Chaos Stabilised Quantum Processing Unit - Proposal.docx
+Project Aeon-Σ - Chaos-Stabilised Quantum Processing Unit.docx
+Project Aeon-Σ - Chimera PQC SDK Specification v1.0.docx
+Project Aeon-Σ - Chimera PQC SDK Specification.docx
+Project Aeon-Σ - Collaboration Outreach and Letters of Support Package.docx
+Project Aeon-Σ - Collaborative Research Agreement (CRA).docx
+Project Aeon-Σ - Commercialisation Strategies Report.docx
+Project Aeon-Σ - Commercialisation Strategy and Market Plan.docx
+Project Aeon-Σ - Competitive Landscape Report.docx
+Project Aeon-Σ - Complete Component TRL Advancement Specification Document.docx
+Project Aeon-Σ - Complete Schematics and Design.docx
+Project Aeon-Σ - Complete Verified Component Index.docx
+Project Aeon-Σ - Completeness Audit Report.docx
+Project Aeon-Σ - Component Deep Dive.docx
+Project Aeon-Σ - Component Maturity & TRL Advancement Plan (TRL 4→6).docx
+Project Aeon-Σ - Configuration Management Plan.docx
+Project Aeon-Σ - Cortex SNN ASIC Phase 2 Deferral.docx
+Project Aeon-Σ - Cryogenic Interconnect and Interface Specification.docx
+Project Aeon-Σ - Cryogenic Qubit Control Simulation and Firmware Architecture.docx
+Project Aeon-Σ - Cryogenic Safety Training Requirements.docx
+Project Aeon-Σ - Cryogenic Subsystem Integration Sequence Specification.docx
+Project Aeon-Σ - Cybersecurity Training Plan.docx
+Project Aeon-Σ - Data Management & Security Plan.docx
+Project Aeon-Σ - Data Protection Impact Assessment (DPIA).docx
+Project Aeon-Σ - Deliverables Schedule and Product Breakdown Structure.docx
+Project Aeon-Σ - Deployment and Integration Guide.docx
+Project Aeon-Σ - Detailed Project Schedule (Gantt Chart).docx
+Project Aeon-Σ - Directly Transferable Concepts.docx
+Project Aeon-Σ - Diversity and Inclusion Plan (2).docx
+Project Aeon-Σ - Diversity and Inclusion Plan.docx
+Project Aeon-Σ - Document Sorting Summary.docx
+Project Aeon-Σ - Document Version Control Policy.docx
+Project Aeon-Σ - Documentation Style Guide.docx
+Project Aeon-Σ - Dual-Source Procurement Assessment.docx
+Project Aeon-Σ - Duplicate and Version Conflict Resolution Record.docx
+Project Aeon-Σ - Embedded Firmware Specification.docx
+Project Aeon-Σ - End-to-End Latency Budget.docx
+Project Aeon-Σ - Entropic Flow-Inspired Enhancements.docx
+Project Aeon-Σ - Entropy Tolerant Fluxonium (ETF) Qubit Family Specification.docx
+Project Aeon-Σ - Environmental Impact Assessment (v3.0).docx
+Project Aeon-Σ - Equipment Calibration Schedule.docx
+Project Aeon-Σ - Errata and Correction Notice.docx
+Project Aeon-Σ - ESD Training Requirements.docx
+Project Aeon-Σ - Ethics Statement (v3.0).docx
+Project Aeon-Σ - Ethics Statement.docx
+Project Aeon-Σ - Expenses and Contingency Plan.docx
+Project Aeon-Σ - Explanation & Reference The Entropic Flow Computer (Adapted for Quantum Control).docx
+Project Aeon-Σ - Exploitation and Commercialisation Plan.docx
+Project Aeon-Σ - Export Control Classification.docx
+Project Aeon-Σ - External Services Plan.docx
+Project Aeon-Σ - Fabrication Yield Validation and Pilot-Run Specification.docx
+Project Aeon-Σ - Facilities and Location Plan v2.0.docx
+Project Aeon-Σ - Facility Access Plan.docx
+Project Aeon-Σ - Fano Plane Octonionic Qubit (FPO Qubit) (Device Specification & Interface Control).docx
+Project Aeon-Σ - Fano Plane Octonionic Qubit Specification (1).docx
+Project Aeon-Σ - Fano Plane Octonionic Qubit Specification (2).docx
+Project Aeon-Σ - Fano Plane Octonionic Qubit Specification (Comprehensive Review).docx
+Project Aeon-Σ - Fano Plane Octonionic Qubit Specification Review.docx
+Project Aeon-Σ - Fano Plane Octonionic Qubit Specification v1.0.docx
+Project Aeon-Σ - Fano Plane Octonionic Qubit Specification.docx
+Project Aeon-Σ - Fano Transpiler and Sigma Pulse Synthesiser Specification.docx
+Project Aeon-Σ - Filesystem Review Notes (2).docx
+Project Aeon-Σ - Filesystem Review Notes.docx
+Project Aeon-Σ - Financial Plan and Cost Control Strategy.docx
+Project Aeon-Σ - FPGA Emulation Platform Specification (40).docx
+Project Aeon-Σ - FPO Qubit Fabrication Process Specification.docx
+Project Aeon-Σ - FPO Qubit Family Cost Personnel and Batch Ordering Specification — Dual Fabricator Analysis.docx
+Project Aeon-Σ - FPO Qubit Family Fabrication Process Addendum.docx
+Project Aeon-Σ - Full Business Plan.docx
+Project Aeon-Σ - Go to Market Strategy (2).docx
+Project Aeon-Σ - Go to Market Strategy.docx
+Project Aeon-Σ - Golden Sample Definition v2.docx
+Project Aeon-Σ - Hardware Specification HP Workstations Mobile Workstations and Server.docx
+Project Aeon-Σ - Hardware Specification v4.0.docx
+Project Aeon-Σ - Health, Safety and Environment (HSE) Plan.docx
+Project Aeon-Σ - Henry Royce Institute – Fabrication Layer Integration.docx
+Project Aeon-Σ - Incident Response Plan.docx
+Project Aeon-Σ - Integrated Manufacturing & Architecture Document.docx
+Project Aeon-Σ - Integrated Manufacturing and Architecture Document.docx
+Project Aeon-Σ - Integrated Project Management Plan.docx
+Project Aeon-Σ - Integration Gap Analysis and Roadmap (2).docx
+Project Aeon-Σ - Integration Gap Analysis and Roadmap (3).docx
+Project Aeon-Σ - Integration Gap Analysis and Roadmap.docx
+Project Aeon-Σ - Intellectual Property Strategy.docx
+Project Aeon-Σ - Investor Pitch Deck (2).docx
+Project Aeon-Σ - Investor Pitch Deck v2.0.docx
+Project Aeon-Σ - Investor Pitch Deck.docx
+Project Aeon-Σ - KPI Dashboard Specification.docx
+Project Aeon-Σ - Laboratory and Facilities Documents - Laboratory Safety Manual.docx
+Project Aeon-Σ - Laboratory and Facilities Documents Laboratory Safety Manual.docx
+Project Aeon-Σ - Laboratory Safety Manual.docx
+Project Aeon-Σ - Laser Safety Training Requirements.docx
+Project Aeon-Σ - Master Bill of Materials (BOM).docx
+Project Aeon-Σ - Master Document Register.docx
+Project Aeon-Σ - Master Operational Runbook.docx
+Project Aeon-Σ - Master Procurement & Budget Document.docx
+Project Aeon-Σ - Master Software Stack Specification.docx
+Project Aeon-Σ - Multi-Tile Scaling Architecture Vision.docx
+Project Aeon-Σ - Nexus Q Interposer Specification.docx
+Project Aeon-Σ - No-Go Risk Management and Prevention Plan.docx
+Project Aeon-Σ - Non-Disclosure Agreement (NDA).docx
+Project Aeon-Σ - NQCC Facility Access Agreement.docx
+Project Aeon-Σ - Octonion Combining Chamber Verification Protocol.docx
+Project Aeon-Σ - Octonion Coprocessor ASIC Creation and Tape Out Plan.docx
+Project Aeon-Σ - Office and Laboratory Supplies Plan.docx
+Project Aeon-Σ - Organisational Chart and RACI Matrix.docx
+Project Aeon-Σ - Patent Portfolio Licensing Framework.docx
+Project Aeon-Σ - Patentable Components Portfolio v2.1.docx
+Project Aeon-Σ - Patentable Components Portfolio.docx
+Project Aeon-Σ - Phase 2 Cryogenic Test Plan Single Qubit Chaos Stabilised Coherence Enhancement.docx
+Project Aeon-Σ - Phase 1 Cryogenic Test Plan 4 K Chaos Validation.docx
+Project Aeon-Σ - Physical Specification Control Architecture and Implementation Blueprint.docx
+Project Aeon-Σ - PRINCE2 Communication Management Strategy.docx
+Project Aeon-Σ - Problem Statement - The Decoherence Barrier.docx
+Project Aeon-Σ - Project Charter.docx
+Project Aeon-Σ - Project Glossary.docx
+Project Aeon-Σ - Project Initiation Document (PID).docx
+Project Aeon-Σ - Project Review Q&A Compilation (2).docx
+Project Aeon-Σ - Project Review Q&A Compilation.docx
+Project Aeon-Σ - Publishable Experimental Proposal.docx
+Project Aeon-Σ - Q MAC Standalone Unit Specification.docx
+Project Aeon-Σ - QPU Testbed Threat Model.docx
+Project Aeon-Σ - Quality Management Plan (QMP).docx
+Project Aeon-Σ - Quantum Computing System Development and Testbed Deployment Plan.docx
+Project Aeon-Σ - Quantum Error Correction Fallback Strategy.docx
+Project Aeon-Σ - Quaternion Multiply Accumulate (Q MAC) Unit.docx
+Project Aeon-Σ - Qubit Fabrication Costings and Resource Plan.docx
+Project Aeon-Σ - Q‑MAC Quaternion Bridging Layer .docx
+Project Aeon-Σ - Q‑MAC Quaternion Bridging Layer.docx
+Project Aeon-Σ - Real-Time Control Software and Firmware Validation Specification.docx
+Project Aeon-Σ - Real-Time Control Stack Validation and Signal Integrity Simulation Specification.docx
+Project Aeon-Σ - Refreshment and Kitchen Supplies Plan.docx
+Project Aeon-Σ - Requirements Traceability Matrix.docx
+Project Aeon-Σ - Resource Loading Plan v7.0.docx
+Project Aeon-Σ - Revenue Forecast (Oct 2028-2031).docx
+Project Aeon-Σ - Risk and Issue Management.docx
+Project Aeon-Σ - Role Justifications Document v2.0.docx
+Project Aeon-Σ - Role Justifications.docx
+Project Aeon-Σ - Scope Creep and Change Control Plan.docx
+Project Aeon-Σ - Signal Integrity Simulation Report (v3.0).docx
+Project Aeon-Σ - Signal Integrity Simulation Report.docx
+Project Aeon-Σ - Software Development Skeleton Guide.docx
+Project Aeon-Σ - Software Module Specifications (4 Modules).docx
+Project Aeon-Σ - Software Specification Complete Toolchain v2.0.docx
+Project Aeon-Σ - Software Specification Complete Toolchain v3.0.docx
+Project Aeon-Σ - Staff Training Plan v1.1.docx
+Project Aeon-Σ - Staff Training Plan.docx
+Project Aeon-Σ - Stakeholder Communication Plan (Appendix to PMP).docx
+Project Aeon-Σ - Standard Document Template.docx
+Project Aeon-Σ - System Appearance and Physical Configuration.docx
+Project Aeon-Σ - System Engineering Fabrication and Integration Release Package.docx
+Project Aeon-Σ - System Reliability Targets (MTBF MTTR SLA).docx
+Project Aeon-Σ - Systems Security Cost Plan (SSCP).docx
+Project Aeon-Σ - Systems Security Plan (SSP).docx
+Project Aeon-Σ - Technical and Engineering Document - Thermal Model Report v2.docx
+Project Aeon-Σ - Technical Document Hypercomplex Algebra Specification.docx
+Project Aeon-Σ - Technical Document QPU & ASIC Architecture Specification.docx
+Project Aeon-Σ - Technical Report Theoretical Advantages of the Entropic Computing Architecture.docx
+Project Aeon-Σ - Technical Specification Chaotic Entropic Engine (CEE).docx
+Project Aeon-Σ - Technical Specification Landauer Sink (The Chaos Vacuum).docx
+Project Aeon-Σ - Technical Specification The 4D Memory Architecture.docx
+Project Aeon-Σ - Test and Evaluation Master Plan (TEMP).docx
+Project Aeon-Σ - Test Results Data Analysis Strategy.docx
+Project Aeon-Σ - Testbed User Portal Security Architecture.docx
+Project Aeon-Σ - Theoretical Quantum - Control Systems Model Construction Plan.docx
+Project Aeon-Σ - Thermal Management & Landauer Sink Experimental Validation Specification.docx
+Project Aeon-Σ - Thermal Model Report (v3.0).docx
+Project Aeon-Σ - Thermal-Structural FEA Mock-Up Assembly and Secondary Insert Design Review Specification.docx
+Project Aeon-Σ - Thermodynamically Aware Topologically Protected Hybrid Quantum Control Architecture.docx
+Project Aeon-Σ - Topologically Protected Superconducting Qubit Array with Persistent Coherence.docx
+Project Aeon-Σ - Unified Quantum Decoherence Control Framework.docx
+Project Aeon-Σ – CS-QPU and ASIC Architecture Overview.docx
+Project Aeon-Σ – FPGA Embedded Engineer Software Delivery Specification.docx
+Project Aeon-Σ – Master Build and Creation Document.docx
+Project Aeon-Σ – Phase 1 Cryogenic Test Plan.docx
+Project Aeon-Σ – Phase 3 Cryogenic Test Plan Multi-Qubit Fano Plane Array.docx
+Project Aeon-Σ – Publishable Experimental Proposal.docx
+Project Aeon-Σ – Risk and Issue Management.docx
+Project Aeon-Σ – The Vortex Entropy Fabric.docx
+Project Aeon‑Σ – Unified Master Procurement and Budget Document (v5.1).docx

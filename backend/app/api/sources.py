@@ -16,6 +16,7 @@ from app.schemas.source import (
     BatchPreflightResult, SourceMoveRequest, MkdirRequest,
 )
 from app.services.pipeline import process_source_background
+from app.services.document_parser import detect_and_parse
 
 router = APIRouter(prefix="/notebooks/{notebook_id}/sources", tags=["sources"])
 
@@ -93,15 +94,26 @@ async def upload_source(
 
     content = await file.read()
     content_hash = hashlib.sha256(content).hexdigest()
-    raw_text = content.decode("utf-8", errors="replace")
     norm_path = _normalize_path(path)
-    file_type = _detect_file_type(file.filename or "unknown")
+    filename = file.filename or "unknown"
+    file_type = _detect_file_type(filename)
+    
+    # For binary formats (docx, pdf, pptx), parse immediately and store only text
+    # This saves memory on Render free tier (512MB limit)
+    if file_type in ("word", "pdf", "powerpoint"):
+        try:
+            raw_text = detect_and_parse(content, filename)
+        except Exception as e:
+            # Fallback to decoded text if parsing fails
+            raw_text = content.decode("utf-8", errors="replace")
+    else:
+        raw_text = content.decode("utf-8", errors="replace")
 
     # Idempotency: check if same path+filename+hash exists
     existing_q = select(Source).where(
         Source.notebook_id == notebook_id,
         Source.path == norm_path,
-        Source.filename == _normalize_path(file.filename or "unknown"),
+        Source.filename == _normalize_path(filename),
     )
     existing = (await db.execute(existing_q)).scalar_one_or_none()
     if existing and existing.content_hash == content_hash:
@@ -137,7 +149,7 @@ async def upload_source(
         notebook_id=notebook_id,
         parent_id=UUID(parent_id) if parent_id else None,
         path=norm_path,
-        filename=_normalize_path(file.filename or "unknown"),
+        filename=_normalize_path(filename),
         file_type=file_type,
         file_size=len(content),
         content_hash=content_hash,
