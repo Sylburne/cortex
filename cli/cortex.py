@@ -310,4 +310,12 @@ Examples:
         print(f"Error: {e}")
 
 if __name__ == "__main__":
-    main()
+    # If no arguments, launch interactive TUI
+    if len(sys.argv) <= 1:
+        try:
+            from cortex_tui import main as tui_main
+            tui_main()
+        except ImportError:
+            main()
+    else:
+        main()
