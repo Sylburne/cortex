@@ -1,5 +1,5 @@
 from app.database import Base
-from sqlalchemy import Column, String, Text, DateTime, Integer, BigInteger, ForeignKey, func, UniqueConstraint
+from sqlalchemy import Column, String, Text, DateTime, Integer, BigInteger, LargeBinary, ForeignKey, func, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -16,7 +16,9 @@ class Source(Base):
     file_type = Column(String(20), nullable=False, default="other")
     file_size = Column(BigInteger, nullable=False, default=0)
     content_hash = Column(String(64), nullable=False, default="")
-    raw_content = Column(Text, nullable=True)
+    raw_content = Column(Text, nullable=True)  # Extracted text for chunking/embedding
+    original_content = Column(LargeBinary, nullable=True)  # Original binary file (PDF/DOCX/etc)
+    original_filename = Column(String(512), nullable=True)  # Original filename for download
     status = Column(String(30), nullable=False, default="uploaded")
     error_message = Column(Text, nullable=True)
     is_dir = Column(Integer, nullable=False, default=0)  # 0=file, 1=directory

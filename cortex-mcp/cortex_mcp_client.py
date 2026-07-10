@@ -80,6 +80,21 @@ class CortexClient:
             f"/api/v1/notebooks/{notebook_id}/sources/{source_id}"
         )
 
+    def download_source(self, notebook_id: str, source_id: str) -> bytes:
+        """Download the original file for a source."""
+        url = f"{self.base_url}/api/v1/notebooks/{notebook_id}/sources/{source_id}/download"
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+        response = requests.get(url, headers=headers, timeout=self.timeout)
+        response.raise_for_status()
+        return response.content
+
+    def get_source_content(self, notebook_id: str, source_id: str) -> dict:
+        """Get extracted text content for a source."""
+        return self._request(
+            "GET",
+            f"/api/v1/notebooks/{notebook_id}/sources/{source_id}/content"
+        )
+
     # Search & Retrieval
     def search(self, notebook_id: str, query: str, top_k: int = 5) -> dict:
         """Semantic search across notebook."""

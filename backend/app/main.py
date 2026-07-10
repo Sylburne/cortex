@@ -34,6 +34,20 @@ async def _ensure_hnsw_index(conn, dim: int):
         print(f"[startup] HNSW index note: {e}")
 
 
+async def _ensure_source_columns(conn):
+    """Add original_content and original_filename columns if missing (migration)."""
+    try:
+        await conn.execute(text(
+            "ALTER TABLE sources ADD COLUMN IF NOT EXISTS original_content BYTEA"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE sources ADD COLUMN IF NOT EXISTS original_filename VARCHAR(512)"
+        ))
+        print("[startup] Source columns: original_content, original_filename OK")
+    except Exception as e:
+        print(f"[startup] Source columns note: {e}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
@@ -41,7 +55,9 @@ async def lifespan(app: FastAPI):
         await _ensure_pgvector(conn)
         # 2. Create all tables (chunks.embedding uses Vector type)
         await conn.run_sync(Base.metadata.create_all)
-        # 3. Create HNSW index for cosine similarity search
+        # 3. Migrate: add original_content and original_filename columns
+        await _ensure_source_columns(conn)
+        # 4. Create HNSW index for cosine similarity search
         await _ensure_hnsw_index(conn, settings.embedding_dimensions)
     print(f"[startup] DB ready | embeddings={settings.embedding_provider}/{settings.embedding_model} | dim={settings.embedding_dimensions}")
     print(f"[startup] Honcho: {'enabled' if honcho_memory.is_enabled() else 'disabled (set HONCHO_API_KEY to enable)'}")

@@ -17,26 +17,38 @@ from app.config import settings
 
 
 async def process_source(source_id: str, notebook_id: str, db: AsyncSession) -> None:
-    """Run the full pipeline for one source: parse → chunk → embed."""
+    """Run the full pipeline for one source: parse \u2192 chunk \u2192 embed."""
     # Fetch source
     q = select(Source).where(Source.id == source_id)
     source = (await db.execute(q)).scalar_one_or_none()
-    if not source or not source.raw_content:
+    if not source:
         return
 
     try:
         # 1. Update status to parsing
         await _update_status(db, source_id, "parsing")
 
-        # 2. Parse raw bytes to text (already decoded on upload for text files,
-        #    but for binary formats we stored decoded text; re-parse if needed)
+        # 2. Get text content
+        #    Priority: raw_content (already extracted) > re-parse from original_content
         text = source.raw_content
-        if source.file_type in ("word", "pdf", "powerpoint"):
-            # raw_content was stored as decoded bytes text — but we need
-            # to re-read the original binary. For simplicity on the free tier
-            # (no blob storage), we stored decoded text. The parser handles
-            # text fallback gracefully.
-            pass  # text already extracted during upload
+        if (not text or not text.strip()) and source.original_content:
+            # Re-parse from stored binary (e.g., if upload parsing failed)
+            print(f"[pipeline] Re-parsing from original_content for {source.filename}")
+            try:
+                text = detect_and_parse(source.original_content, source.filename)
+                # Store the parsed text for future use
+                source.raw_content = text
+                await db.flush()
+            except Exception as e:
+                print(f"[pipeline] Re-parse failed for {source.filename}: {e}")
+                await _update_status(db, source_id, "error", f"Parse failed: {e}")
+                await db.commit()
+                return
+
+        if not text or not text.strip():
+            await _update_status(db, source_id, "empty")
+            await db.commit()
+            return
 
         # 3. Chunk
         await _update_status(db, source_id, "chunking")

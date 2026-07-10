@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete, update
 import hashlib
@@ -6,6 +7,7 @@ import unicodedata
 import asyncio
 from typing import Optional
 from uuid import UUID
+import mimetypes
 
 from app.database import get_db
 from app.api.auth import verify_api_key
@@ -98,14 +100,17 @@ async def upload_source(
     filename = file.filename or "unknown"
     file_type = _detect_file_type(filename)
     
-    # For binary formats (docx, pdf, pptx), parse immediately and store only text
-    # This saves memory on Render free tier (512MB limit)
+    # Store original binary for all non-text formats (preserves exact file)
+    original_content = None
+    if file_type in ("word", "pdf", "powerpoint"):
+        original_content = content
+    
+    # Parse text from binary formats for chunking/embedding
     if file_type in ("word", "pdf", "powerpoint"):
         try:
             raw_text = detect_and_parse(content, filename)
-            print(f"[upload] Parsed {file_type} file: {filename} -> {len(raw_text)} chars")
+            print(f"[upload] Parsed {file_type}: {filename} -> {len(raw_text)} chars text, {len(content)} bytes binary stored")
         except Exception as e:
-            # Fallback to decoded text if parsing fails
             print(f"[upload] Parse failed for {filename}: {e}")
             raw_text = content.decode("utf-8", errors="replace")
     else:
@@ -135,6 +140,8 @@ async def upload_source(
         existing.file_size = len(content)
         existing.status = "uploaded"
         existing.error_message = None
+        existing.original_content = original_content
+        existing.original_filename = filename if original_content else None
         await db.commit()
         await db.refresh(existing)
         return SourceResponse(
@@ -156,6 +163,8 @@ async def upload_source(
         file_size=len(content),
         content_hash=content_hash,
         raw_content=raw_text,
+        original_content=original_content,
+        original_filename=filename if original_content else None,
         status="uploaded",
     )
     db.add(source)
@@ -187,6 +196,35 @@ async def get_source_content(
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
     return {"content": source.raw_content or "", "filename": source.filename, "status": source.status}
+
+
+@router.get("/{source_id}/download")
+async def download_source(
+    notebook_id: str,
+    source_id: str,
+    owner_id: str = Depends(verify_api_key),
+    db: AsyncSession = Depends(get_db),
+):
+    """Download the original file (PDF/DOCX/etc) as stored in the notebook."""
+    q = select(Source).where(Source.id == source_id, Source.notebook_id == notebook_id)
+    source = (await db.execute(q)).scalar_one_or_none()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    
+    if not source.original_content:
+        raise HTTPException(status_code=404, detail="No original file stored for this source")
+    
+    # Determine media type from filename
+    filename = source.original_filename or source.filename
+    media_type, _ = mimetypes.guess_type(filename)
+    if not media_type:
+        media_type = "application/octet-stream"
+    
+    return Response(
+        content=source.original_content,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.delete("/{source_id}")

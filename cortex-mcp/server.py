@@ -146,6 +146,46 @@ if MCP_AVAILABLE:
                 },
             ),
             Tool(
+                name="cortex_download_source",
+                description="Download the original file (PDF/DOCX/etc) stored for a source",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "notebook_id": {
+                            "type": "string",
+                            "description": "ID of the notebook",
+                        },
+                        "source_id": {
+                            "type": "string",
+                            "description": "ID of the source to download",
+                        },
+                        "save_path": {
+                            "type": "string",
+                            "description": "Local path to save the downloaded file",
+                        },
+                    },
+                    "required": ["notebook_id", "source_id", "save_path"],
+                },
+            ),
+            Tool(
+                name="cortex_get_content",
+                description="Get the extracted text content for a source (for reading without downloading)",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "notebook_id": {
+                            "type": "string",
+                            "description": "ID of the notebook",
+                        },
+                        "source_id": {
+                            "type": "string",
+                            "description": "ID of the source",
+                        },
+                    },
+                    "required": ["notebook_id", "source_id"],
+                },
+            ),
+            Tool(
                 name="cortex_search",
                 description="Perform semantic search across a notebook's knowledge",
                 inputSchema={
@@ -368,6 +408,24 @@ if MCP_AVAILABLE:
 
             elif name == "cortex_delete_source":
                 result = client.delete_source(
+                    arguments["notebook_id"],
+                    arguments["source_id"]
+                )
+                return [TextContent(type="text", text=json.dumps(result, indent=2))]
+
+            elif name == "cortex_download_source":
+                content = client.download_source(
+                    arguments["notebook_id"],
+                    arguments["source_id"]
+                )
+                save_path = arguments["save_path"]
+                os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
+                with open(save_path, "wb") as f:
+                    f.write(content)
+                return [TextContent(type="text", text=f"Downloaded {len(content)} bytes to {save_path}")]
+
+            elif name == "cortex_get_content":
+                result = client.get_source_content(
                     arguments["notebook_id"],
                     arguments["source_id"]
                 )
