@@ -122,6 +122,12 @@ async def upload_source(
     else:
         raw_text = content.decode("utf-8", errors="replace")
 
+    # Idempotency: check if same path+filename+hash exists
+    existing_q = select(Source).where(
+        Source.notebook_id == notebook_id,
+        Source.path == norm_path,
+        Source.filename == _normalize_path(filename),
+    )
     existing = (await db.execute(existing_q)).scalar_one_or_none()
     if existing and existing.content_hash == content_hash:
         return SourceResponse(
