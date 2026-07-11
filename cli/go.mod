@@ -1,4 +1,4 @@
-module github.com/qmind/cli
+module github.com/Sylburne/cortex/cli
 
 go 1.22
 

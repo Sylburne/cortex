@@ -1,6 +1,6 @@
 package main
 
-import "github.com/qmind/cli/cmd"
+import "github.com/Sylburne/cortex/cli/cmd"
 
 func main() {
 	cmd.Execute()

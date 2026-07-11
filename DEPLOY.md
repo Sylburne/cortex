@@ -1,16 +1,16 @@
-# QMind Deployment Guide — Render + Neon (10 minutes)
+# Cortex Deployment Guide — Render + Neon (10 minutes)
 
 ## Prerequisites
 - [Neon account](https://neon.tech) (free, 0.5GB Postgres + pgvector)
 - [Render account](https://render.com) (free, 512MB web service)
-- OpenAI API key (or Anthropic/Ollama)
+- OpenAI API key (or Anthropic/Gemini/HuggingFace/Qwen/Ollama)
 - Optional: [Honcho account](https://app.honcho.dev) ($100 free credits for AI memory)
 
 ## Step 1: Create Neon Database (2 min)
 
 1. Go to [neon.tech](https://neon.tech) → New Project
-2. Name it `qmind` → Create Project
-3. Copy the **connection string** (looks like: `postgresql://user:pass@ep-xxx.aws.neon.tech/qmind?sslmode=require`)
+2. Name it `cortex` → Create Project
+3. Copy the **connection string** (looks like: `postgresql://user:pass@ep-xxx.aws.neon.tech/cortex?sslmode=require`)
 4. In the Neon SQL editor, run:
    ```sql
    CREATE EXTENSION vector;
@@ -19,9 +19,9 @@
 ## Step 2: Deploy to Render (5 min)
 
 1. Go to [render.com](https://render.com) → New → Web Service
-2. Connect your GitHub repo (or upload the `qmind/backend` folder)
+2. Connect your GitHub repo (point to the `backend/` folder)
 3. Configure:
-   - **Name**: `qmind-api`
+   - **Name**: `cortex-api`
    - **Environment**: `Python 3`
    - **Region**: Oregon (or closest to you)
    - **Plan**: Free
@@ -30,7 +30,7 @@
 
 4. Add Environment Variables:
    ```
-   DATABASE_URL=postgresql://user:pass@ep-xxx.aws.neon.tech/qmind?sslmode=require
+   DATABASE_URL=postgresql://user:pass@ep-xxx.aws.neon.tech/cortex?sslmode=require
    API_KEY=your-strong-random-key-here
    OPENAI_API_KEY=sk-xxx
    EMBEDDING_PROVIDER=openai
@@ -42,7 +42,7 @@
    **Optional — Enable Honcho Memory:**
    ```
    HONCHO_API_KEY=your-honcho-key
-   HONCHO_WORKSPACE_ID=qmind
+   HONCHO_WORKSPACE_ID=cortex
    ```
 
 5. Click **Create Web Service**
@@ -52,13 +52,13 @@
 Wait for Render to finish deploying (~2-3 min), then:
 
 ```bash
-python verify_deploy.py https://qmind-api.onrender.com
+python verify_deploy.py https://cortex-api-xxxx.onrender.com
 ```
 
 You should see:
 ```
 ✓ Root endpoint                 200 (expected 200)
-  Service: qmind | Version: 0.1.0
+  Service: cortex | Version: 0.1.0
   Honcho: enabled
 ✓ Health endpoint               200 (expected 200)
 ✓ Create notebook               200 (expected 200)
@@ -67,25 +67,29 @@ You should see:
 ✓ Memory status                 200 (expected 200)
 ```
 
-## Step 4: Test with CLI
+## Step 4: Install and Use the CLI
 
 ```bash
-cd qmind/cli
-go build -o qmind-local
-./qmind-local login
-./qmind-local notebook create "My First Notebook"
-./qmind-local notebook list
+cd cli
+pip install -r requirements.txt
+python cortex.py login
+```
+
+Or use the batch wrapper:
+```bash
+cli\cortex login
 ```
 
 ## What You Get
 
 **Base Version (no Honcho):**
 - Notebook CRUD
-- Document upload with auto parse→chunk→embed
-- Vector search (pgvector)
+- Document upload with auto parse→chunk→embed (PDF, DOCX, PPTX, MD, TXT, PNG, JPG, GIF, SVG, WEBP)
+- Vector search (pgvector with HNSW index)
 - RAG Q&A with citations
 - Knowledge compilation
-- Linting
+- AI-powered file review and updates
+- MCP server for AI assistant integration
 
 **Honcho Version (add HONCHO_API_KEY):**
 - Everything above, PLUS:
@@ -107,6 +111,7 @@ DELETE /api/v1/notebooks/{id}    → Delete notebook
 
 POST /api/v1/notebooks/{id}/sources        → Upload file (auto-chunks & embeds)
 GET  /api/v1/notebooks/{id}/sources        → List sources
+GET  /api/v1/notebooks/{id}/sources/{sid}/download → Download original file
 DELETE /api/v1/notebooks/{id}/sources/{id} → Delete source
 
 POST /api/v1/notebooks/{id}/search         → Vector search
@@ -114,6 +119,9 @@ POST /api/v1/notebooks/{id}/retrieve       → Semantic retrieval
 
 POST /api/v1/notebooks/{id}/rag/sessions   → Create RAG session
 POST /api/v1/notebooks/{id}/rag/sessions/{sid}/messages → Send message, get RAG answer
+
+POST /api/v1/notebooks/{id}/review         → AI review and update files
+POST /api/v1/notebooks/{id}/review/upload-updated/{target} → Save reviewed files
 
 GET  /api/v1/memory/status       → Check Honcho status
 POST /api/v1/memory/insights     → Query user insights (Honcho)
@@ -139,6 +147,10 @@ POST /api/v1/memory/context      → Get session context (Honcho)
 - Check `GET /api/v1/memory/status` → should show `enabled: true`
 - Honcho failures don't break the app (graceful degradation)
 
+**Image uploads fail:**
+- Ensure the backend is running the latest version with image support
+- Supported formats: PNG, JPG, JPEG, GIF, SVG, WEBP
+
 ## Cost
 
 | Service | Free Tier | Your Cost |
@@ -152,7 +164,8 @@ POST /api/v1/memory/context      → Get session context (Honcho)
 
 ## Next Steps
 
-- Build the Go CLI (needs Go installed)
-- Upload your Project Aeon-S documents
+- Install the Cortex CLI and start chatting with your knowledge
+- Upload your documents and images
 - Start asking questions with RAG
 - Enable Honcho for persistent memory
+- Connect the MCP server to your AI assistant

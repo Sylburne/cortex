@@ -15,9 +15,9 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "qmind",
-	Short: "QMind - Personal knowledge base CLI",
-	Long:  `QMind is a CLI tool for managing knowledge bases with RAG, vector search, and multi-provider AI.`,
+	Use:   "cortex",
+	Short: "Cortex - Personal knowledge base CLI",
+	Long:  `Cortex is a CLI tool for managing knowledge bases with RAG, vector search, and multi-provider AI.`,
 }
 
 func Execute() {
@@ -38,7 +38,7 @@ func init() {
 func initConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("$HOME/.qmind-local")
+	viper.AddConfigPath("$HOME/.cortex")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 	viper.ReadInConfig()
