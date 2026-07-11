@@ -100,9 +100,9 @@ async def upload_source(
     filename = file.filename or "unknown"
     file_type = _detect_file_type(filename)
     
-    # Store original binary for all non-text formats (preserves exact file)
+    # Store original binary for formats that need preservation (not plain text)
     original_content = None
-    if file_type in ("word", "pdf", "powerpoint"):
+    if file_type in ("word", "pdf", "powerpoint", "image"):
         original_content = content
     
     # Parse text from binary formats for chunking/embedding
@@ -113,15 +113,15 @@ async def upload_source(
         except Exception as e:
             print(f"[upload] Parse failed for {filename}: {e}")
             raw_text = content.decode("utf-8", errors="replace")
+    elif file_type == "image":
+        # Images: store binary as-is, no text extraction
+        raw_text = ""
+        print(f"[upload] Image stored: {filename} ({len(content)} bytes)")
+    elif file_type in ("markdown", "text"):
+        raw_text = content.decode("utf-8", errors="replace")
     else:
         raw_text = content.decode("utf-8", errors="replace")
 
-    # Idempotency: check if same path+filename+hash exists
-    existing_q = select(Source).where(
-        Source.notebook_id == notebook_id,
-        Source.path == norm_path,
-        Source.filename == _normalize_path(filename),
-    )
     existing = (await db.execute(existing_q)).scalar_one_or_none()
     if existing and existing.content_hash == content_hash:
         return SourceResponse(
