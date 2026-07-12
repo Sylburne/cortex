@@ -1,8 +1,8 @@
 # Cortex — Personal AI Knowledge Base
 
-Cortex is your **personal AI knowledge base** — a self-hosted RAG system that lets you upload documents, chat with your knowledge, and keep AI-powered notes organized across notebooks. Built for individuals who want their own AI-augmented second brain, not a team wiki.
+Cortex is your **personal AI knowledge base** a self-hosted RAG system that lets you upload documents, chat with your knowledge, and keep AI-powered notes organized across notebooks. Built for individuals who want their own AI-augmented second brain, not a team wiki.
 
-Think of it as **Notion meets ChatGPT, but you own it** — your documents, your API keys, your data. Deploy for free on Render, connect your preferred AI provider, and access everything through a terminal-native CLI, MCP server, or REST API.
+Think of it as **Notion meets ChatGPT, but you own it** your documents, your API keys, your data. Deploy for free on Render, connect your preferred AI provider, and access everything through a terminal-native CLI, MCP server, or REST API.
 
 ## Features
 
