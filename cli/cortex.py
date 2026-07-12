@@ -845,6 +845,73 @@ def build_prompt():
         p += "> "
         return p
 
+# ─── Banner ──────────────────────────────────────────────────────────────────
+
+def show_banner():
+    """Show the startup banner with ASCII art logo and live system info."""
+    if not RICH:
+        print("\n    CORTEX — Interactive AI Agent Terminal v0.1.0")
+        print("    Type /help for commands, or just ask a question.\n")
+        return
+
+    console.print()
+
+    # ASCII art logo
+    logo = """[bold cyan]
+   ██████╗ ██████╗ ██████╗ ████████╗███████╗██╗  ██╗
+  ██╔════╝██╔═══██╗██╔══██╗╚══██╔══╝██╔════╝╚██╗██╔╝
+  ██║     ██║   ██║██████╔╝   ██║   █████╗   ╚███╔╝
+  ██║     ██║   ██║██╔══██╗   ██║   ██╔══╝   ██╔██╗
+  ╚██████╗╚██████╔╝██║  ██║   ██║   ███████╗██╔╝ ██╗
+   ╚═════╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝[/bold cyan]"""
+    console.print(logo)
+    console.print("  [dim]Personal AI Knowledge Base[/dim] [bold]v0.1.0[/bold]")
+    console.print()
+
+    # Gather live info
+    ok, data = client.health()
+    server_status = "[green]● Online[/green]" if ok else "[red]● Offline[/red]"
+    server_url = client.url or "not configured"
+
+    # Notebook info
+    nb_name = "none"
+    nb_sources = 0
+    nb_count = 0
+    if client.active_notebook:
+        try:
+            notebooks = client.list_notebooks()
+            nb_count = len(notebooks)
+            for n in notebooks:
+                if n["id"] == client.active_notebook:
+                    nb_name = n.get("name", "unknown")
+                    nb_sources = n.get("source_count", 0)
+                    break
+        except Exception:
+            nb_name = client.active_notebook[:12] + "..."
+
+    provider = os.environ.get("CORTEX_PROVIDER", "gemini")
+    model = os.environ.get("CORTEX_MODEL", "gemini-2.0-flash")
+
+    # Build info lines
+    lines = []
+    lines.append(f"  {server_status}      [dim]{server_url}[/dim]")
+    lines.append(f"  [bold]▣[/bold] Notebook     [cyan]{nb_name}[/cyan]  [dim]({nb_sources} sources)[/dim]")
+    if nb_count > 0:
+        lines.append(f"  [bold]▣[/bold] Library      {nb_count} notebooks total")
+    lines.append(f"  [bold]◆[/bold] AI           {provider} / {model}")
+    lines.append(f"  [bold]◇[/bold] Workspace    [dim]{client.workspace}[/dim]")
+    lines.append("")
+    lines.append("  [dim]Type /help for commands, or just ask a question.[/dim]")
+
+    console.print(Panel(
+        "\n".join(lines),
+        title="[bold]Cortex[/bold]",
+        box=ROUNDED,
+        border_style="cyan",
+        padding=(1, 2)
+    ))
+    console.print()
+
 # ─── Main Entry Point ────────────────────────────────────────────────────────
 
 def main():
@@ -864,17 +931,7 @@ def main():
         print_dim("Warning: Server unreachable. Some features may not work.")
 
     # Banner
-    if RICH:
-        console.print()
-        console.print(Panel.fit(
-            "[bold cyan]CORTEX[/bold cyan] [dim]— Interactive AI Agent Terminal[/dim]\n"
-            "[dim]Type /help for commands, or just ask a question.[/dim]",
-            box=ROUNDED, border_style="cyan"
-        ))
-        console.print()
-    else:
-        print("\nCORTEX — Interactive AI Agent Terminal")
-        print("Type /help for commands, or just ask a question.\n")
+    show_banner()
 
     # REPL
     if PROMPT_TOOLKIT:
