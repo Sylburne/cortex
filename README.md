@@ -1,6 +1,8 @@
-# Cortex
+# Cortex — Personal AI Knowledge Base
 
-Personal AI knowledge base with RAG, vector search, and multi-provider AI. Upload your documents, chat with your knowledge, and let AI help you organize, search, and update your information.
+Cortex is your **personal AI knowledge base** — a self-hosted RAG system that lets you upload documents, chat with your knowledge, and keep AI-powered notes organized across notebooks. Built for individuals who want their own AI-augmented second brain, not a team wiki.
+
+Think of it as **Notion meets ChatGPT, but you own it** — your documents, your API keys, your data. Deploy for free on Render, connect your preferred AI provider, and access everything through a terminal-native CLI, MCP server, or REST API.
 
 ## Features
 
@@ -64,48 +66,170 @@ pip install -r requirements.txt
 python cortex.py
 ```
 
-### Connect via MCP
+### Connect via MCP (AI Assistant Integration)
 
-Add to your AI assistant's MCP config:
+Cortex exposes a full MCP (Model Context Protocol) server so AI assistants like Qoder and Claude Desktop can directly search, chat, and manage your knowledge base.
+
+#### Qoder Setup
+
+Add this to your Qoder MCP settings (`.qoder/mcp.json` or via the MCP settings UI):
 
 ```json
 {
   "mcpServers": {
     "cortex": {
       "command": "python",
-      "args": ["cortex-mcp/server.py"],
-      "cwd": "cortex-mcp"
+      "args": ["c:/Projects/Projrct Aeon/qmind/cortex-mcp/server.py"],
+      "cwd": "c:/Projects/Projrct Aeon/qmind/cortex-mcp"
     }
   }
 }
 ```
 
+> **Note:** Adjust paths to match your local installation. The MCP server reads credentials from `~/.cortex/config.json` — run `cortex login` first to configure.
+
+#### Claude Desktop Setup
+
+Add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "cortex": {
+      "command": "python",
+      "args": ["/path/to/cortex-mcp/server.py"],
+      "cwd": "/path/to/cortex-mcp"
+    }
+  }
+}
+```
+
+#### Available MCP Tools
+
+| Category | Tool | Description |
+|----------|------|-------------|
+| Notebooks | `cortex_list_notebooks` | List all notebooks |
+| | `cortex_create_notebook` | Create a new notebook |
+| | `cortex_delete_notebook` | Delete a notebook |
+| Sources | `cortex_list_sources` | List files in a notebook |
+| | `cortex_upload_file` | Upload a file to a notebook |
+| | `cortex_delete_source` | Delete a source file |
+| Search | `cortex_search` | Semantic search across notebook |
+| | `cortex_retrieve` | Retrieve chunks grouped by source |
+| Chat | `cortex_create_session` | Create a RAG chat session |
+| | `cortex_list_sessions` | List chat sessions |
+| | `cortex_delete_session` | Delete a chat session |
+| | `cortex_chat` | Send message and get RAG response |
+| Review | `cortex_review` | AI-powered file comparison |
+| | `cortex_upload_review_results` | Save reviewed files |
+
 ## CLI Usage
 
-The Cortex CLI is an interactive AI agent terminal:
+The Cortex CLI is an interactive AI agent terminal with tab-completion, filesystem access, and knowledge base management:
 
 ```
 $ cortex
+   ██████╗ ██████╗ ██████╗ ████████╗███████╗██╗  ██╗
+  ██╔════╝██╔═══██╗██╔══██╗╚══██╔══╝██╔════╝╚██╗██╔╝
+  ██║     ██║   ██║██████╔╝   ██║   █████╗   ╚███╔╝
+  ██║     ██║   ██║██╔══██╗   ██║   ██╔══╝   ██╔██╗
+  ╚██████╗╚██████╔╝██║  ██║   ██║   ███████╗██╔╝ ██╗
+   ╚═════╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
 
-Cortex v0.1.0 | Workspace: ~/projects | Notebook: Project Aeon Research
+  Personal AI Knowledge Base — v0.1.0
 
-Commands:
-  ls, cd, pwd, cat, read, write, mkdir, rm, tree    Filesystem
-  /kb list|create|upload|search|select|status        Knowledge Base
-  /ask <question>                                     AI Query
-  /chat                                               Interactive Chat
-  /workspace <path>                                   Set working directory
-  /login, /status, /help, /quit                       Session
+  ● Online       https://cortex-api-cpjo.onrender.com
+  ▣ Notebook     Project Aeon Research  (12 sources)
+  ◆ AI           gemini / gemini-2.0-flash
+  ◇ Workspace    ~/projects
+
+cortex [~/projects] (Project Aeon Research)>
+
+> /model
+  #  Provider    Model
+  1  gemini      gemini-2.0-flash
+  2  gemini      gemini-2.5-pro
+  ...
+  Pick model (name or number): 2
+  Model set to: gemini-2.5-pro
 
 > /ask What are the key specs of the dilution refrigerator?
 
-AI (gemini/gemini-2.0-flash):
+AI (gemini/gemini-2.5-pro):
   Based on the Aeon-Graphene Material Spec Sheet, the dilution
   refrigerator operates at 10mK base temperature with a cooling
   power of 400uW at 100mK...
   Sources:
     - Aeon-Graphene Material Spec Sheet.docx (score: 0.94)
     - A cutaway internal diagram of the dilution refrigerator.png (score: 0.87)
+```
+
+### Command Reference
+
+| Category | Command | Description |
+|----------|---------|-------------|
+| **Filesystem** | `ls [path]` | List directory contents |
+| | `cd [path]` | Change working directory |
+| | `pwd` | Show working directory |
+| | `cat <file>` | Display file with syntax highlighting |
+| | `read <file>` | Read file contents |
+| | `write <file>` | Create/edit a file |
+| | `mkdir <dir>` | Create directory |
+| | `rm <path>` | Remove file or directory |
+| | `tree [path]` | Show directory tree |
+| **Knowledge Base** | `/kb list` | List all notebooks |
+| | `/kb create <name>` | Create a new notebook |
+| | `/kb upload <file...>` | Upload files to active notebook |
+| | `/kb search <query>` | Semantic search |
+| | `/kb select <id>` | Set active notebook |
+| | `/kb status` | Show active notebook info |
+| **AI** | `/ask <question>` | Ask AI with knowledge base context |
+| | `/chat` | Enter interactive chat mode |
+| | `/model` | Interactive model picker |
+| | `/model <name>` | Set model directly |
+| | `/provider` | Interactive provider picker |
+| | `/provider <name>` | Set provider directly |
+| | `/provider add <key> <name> <url> <key>` | Add custom provider |
+| | `/provider remove <key>` | Remove custom provider |
+| | `/provider list` | List all providers |
+| **Settings & Sync** | `/settings` | Interactive settings menu |
+| | `/deploy` | Trigger Render deploy |
+| | `/sync github` | Push config to GitHub |
+| | `/sync render` | Alias for /deploy |
+| | `/honcho` | Show Honcho memory status |
+| | `/honcho enable <key>` | Enable Honcho |
+| | `/honcho disable` | Disable Honcho |
+| **Session** | `/login` | Configure connection |
+| | `/workspace <path>` | Set working directory |
+| | `/status` | Show full status |
+| | `/help` | Show command help |
+| | `/quit` | Exit CLI |
+
+### Tab Completion
+
+Press **TAB** to auto-complete:
+- `/` shows all slash commands
+- `/kb ` shows knowledge base sub-commands
+- `/model ` shows available models
+- `/provider ` shows available providers
+- File paths auto-complete for `ls`, `cd`, `cat`, `read`, `write`, `rm`, `tree`
+
+### Custom Providers
+
+Add any OpenAI-compatible API as a custom provider:
+
+```
+> /provider add my-llm "My LLM" https://api.example.com/v1 sk-xxx
+  Added custom provider: My LLM (my-llm)
+
+> /provider
+  #  Key        Description
+  1  gemini     Google Gemini           (google_api_key)
+  2  openai     OpenAI                  (openai_api_key)
+  3  my-llm     My LLM (custom: https://api.example.com/v1)
+
+> /provider my-llm
+  Provider set to: my-llm
 ```
 
 ## API Endpoints

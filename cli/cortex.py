@@ -68,6 +68,148 @@ try:
 except ImportError:
     PROMPT_TOOLKIT = False
 
+# ─── Built-in Provider & Model Data ───────────────────────────────────────────
+
+BUILTIN_PROVIDERS = {
+    "gemini":     "Google Gemini           (google_api_key)",
+    "openai":     "OpenAI                  (openai_api_key)",
+    "anthropic":  "Anthropic Claude        (anthropic_api_key)",
+    "qwen":       "Alibaba Qwen/DashScope  (qwen_api_key)",
+    "ollama":     "Ollama (local)          (ollama_base_url)",
+    "huggingface":"HuggingFace Inference   (huggingface_api_key)",
+}
+
+BUILTIN_MODELS = {
+    "gemini":      ["gemini-2.0-flash", "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash-lite"],
+    "openai":      ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
+    "anthropic":   ["claude-3-5-sonnet", "claude-3-haiku", "claude-3-opus", "claude-3-7-sonnet"],
+    "qwen":        ["qwen-max", "qwen-plus", "qwen-turbo"],
+    "ollama":      ["llama3.2", "mistral", "codellama", "gemma2"],
+    "huggingface": ["mistralai/Mixtral-8x7B", "meta-llama/Llama-3-8B", "google/gemma-2-9b"],
+}
+
+ALL_SLASH_COMMANDS = [
+    "/ask", "/chat", "/deploy", "/help", "/honcho",
+    "/kb", "/login", "/model", "/provider", "/quit",
+    "/settings", "/status", "/sync", "/workspace",
+]
+
+KB_SUB_COMMANDS = ["list", "create", "upload", "search", "select", "status"]
+HONCHO_SUB_COMMANDS = ["enable", "disable"]
+SYNC_SUB_COMMANDS = ["github", "render"]
+PROVIDER_SUB_COMMANDS = ["add", "remove", "list"]
+
+# ─── Tab Completion ──────────────────────────────────────────────────────────
+
+try:
+    from prompt_toolkit.completion import PathCompleter
+    PATH_COMPLETER = PathCompleter(expanduser=True)
+except ImportError:
+    PATH_COMPLETER = None
+
+class CortexCompleter(Completer):
+    """Auto-complete Cortex commands and file paths."""
+
+    def __init__(self):
+        self._cached_notebooks = []
+
+    def get_completions(self, document, complete_event):
+        text = document.text_before_cursor
+        word = document.get_word_before_cursor(WORD=True)
+
+        # /kb sub-commands
+        if text.rstrip().startswith("/kb "):
+            after_kb = text[len("/kb "):].lstrip()
+            parts = after_kb.split(None, 1)
+            if len(parts) == 1 and not after_kb.endswith(" "):
+                # Completing sub-command
+                for cmd in KB_SUB_COMMANDS:
+                    if cmd.startswith(parts[0]):
+                        yield Completion(cmd, start_position=-len(parts[0]))
+            elif parts and parts[0] == "select":
+                # Completing notebook IDs
+                nb_prefix = parts[1] if len(parts) > 1 else ""
+                for nb in self._cached_notebooks:
+                    if nb["id"].startswith(nb_prefix) or nb.get("name", "").lower().startswith(nb_prefix.lower()):
+                        display = f"{nb['id'][:12]}... ({nb.get('name', '')})"
+                        yield Completion(nb["id"], start_position=-len(nb_prefix), display=display)
+            return
+
+        # /provider sub-commands
+        if text.rstrip().startswith("/provider "):
+            after = text[len("/provider "):].lstrip()
+            parts = after.split(None, 1)
+            if len(parts) == 1 and not after.endswith(" "):
+                for cmd in PROVIDER_SUB_COMMANDS:
+                    if cmd.startswith(parts[0]):
+                        yield Completion(cmd, start_position=-len(parts[0]))
+                # Also suggest provider names
+                for prov in BUILTIN_PROVIDERS:
+                    if prov.startswith(parts[0]):
+                        yield Completion(prov, start_position=-len(parts[0]))
+                # Custom providers
+                cfg = load_config()
+                for prov in cfg.get("custom_providers", {}):
+                    if prov.startswith(parts[0]):
+                        yield Completion(prov, start_position=-len(parts[0]))
+            return
+
+        # /sync sub-commands
+        if text.rstrip().startswith("/sync "):
+            after = text[len("/sync "):].lstrip()
+            if not after.endswith(" "):
+                for cmd in SYNC_SUB_COMMANDS:
+                    if cmd.startswith(after):
+                        yield Completion(cmd, start_position=-len(after))
+            return
+
+        # /honcho sub-commands
+        if text.rstrip().startswith("/honcho "):
+            after = text[len("/honcho "):].lstrip()
+            if not after.endswith(" "):
+                for cmd in HONCHO_SUB_COMMANDS:
+                    if cmd.startswith(after):
+                        yield Completion(cmd, start_position=-len(after))
+            return
+
+        # /model — suggest model names
+        if text.rstrip().startswith("/model "):
+            after = text[len("/model "):].lstrip()
+            if not after.endswith(" "):
+                for models in BUILTIN_MODELS.values():
+                    for m in models:
+                        if m.startswith(after):
+                            yield Completion(m, start_position=-len(after))
+            return
+
+        # Slash commands (when typing /)
+        if text.startswith("/"):
+            for cmd in ALL_SLASH_COMMANDS:
+                if cmd.startswith(text):
+                    yield Completion(cmd, start_position=-len(text))
+            return
+
+        # Filesystem commands — suggest file paths
+        parts = text.split(None, 1)
+        if parts and parts[0] in ("ls", "cd", "cat", "read", "write", "rm", "tree", "mkdir"):
+            if PATH_COMPLETER:
+                path_arg = parts[1] if len(parts) > 1 else ""
+                # Resolve relative to workspace
+                if path_arg and not os.path.isabs(path_arg):
+                    path_arg = os.path.join(client.workspace, path_arg)
+                elif not path_arg:
+                    path_arg = client.workspace
+                # Create a sub-document for path completion
+                from prompt_toolkit.document import Document
+                path_doc = Document(path_arg, len(path_arg))
+                yield from PATH_COMPLETER.get_completions(path_doc, complete_event)
+            return
+
+        # General filesystem commands
+        for cmd in ("ls", "cd", "pwd", "cat", "read", "write", "mkdir", "rm", "tree"):
+            if cmd.startswith(text):
+                yield Completion(cmd, start_position=-len(text))
+
 # ─── Cortex API Client ───────────────────────────────────────────────────────
 
 class CortexClient:
@@ -87,6 +229,11 @@ class CortexClient:
             self.headers = {"Authorization": f"Bearer {self.key}"}
         self.active_notebook = cfg.get("active_notebook")
         self.workspace = cfg.get("workspace", os.getcwd())
+        # Restore saved provider/model preferences
+        if cfg.get("default_provider") and "CORTEX_PROVIDER" not in os.environ:
+            os.environ["CORTEX_PROVIDER"] = cfg["default_provider"]
+        if cfg.get("default_model") and "CORTEX_MODEL" not in os.environ:
+            os.environ["CORTEX_MODEL"] = cfg["default_model"]
         return bool(self.url and self.key)
 
     def save(self):
@@ -626,18 +773,144 @@ def cmd_chat(args):
         print_error(str(e))
 
 def cmd_provider(args):
-    if not args:
-        print_dim(f"Current provider: {os.environ.get('CORTEX_PROVIDER', 'gemini')}")
+    parts = args.split(None, 1) if args else []
+    sub = parts[0] if parts else ""
+    sub_args = parts[1] if len(parts) > 1 else ""
+
+    # /provider add <key> <name> <api_base> <api_key>
+    if sub == "add":
+        add_parts = sub_args.split(None, 3) if sub_args else []
+        if len(add_parts) < 4:
+            print_error("Usage: /provider add <key> <name> <api_base> <api_key>")
+            print_dim('  Example: /provider add my-llm "My LLM" https://api.example.com/v1 sk-xxx')
+            return
+        key, name, api_base, api_key = add_parts
+        cfg = load_config()
+        if "custom_providers" not in cfg:
+            cfg["custom_providers"] = {}
+        # Auto-detect models from the API if possible, default to empty list
+        cfg["custom_providers"][key] = {
+            "name": name,
+            "api_base": api_base,
+            "api_key": api_key,
+            "models": [],
+            "type": "openai-compatible"
+        }
+        save_config(cfg)
+        print_success(f"Added custom provider: {name} ({key})")
+        print_dim("  Use /provider {key} to select it, then /model to pick a model.")
         return
+
+    # /provider remove <key>
+    if sub == "remove":
+        if not sub_args:
+            print_error("Usage: /provider remove <key>")
+            return
+        cfg = load_config()
+        if "custom_providers" in cfg and sub_args in cfg["custom_providers"]:
+            del cfg["custom_providers"][sub_args]
+            save_config(cfg)
+            # If this was the active provider, reset to gemini
+            if os.environ.get("CORTEX_PROVIDER") == sub_args:
+                os.environ["CORTEX_PROVIDER"] = "gemini"
+            print_success(f"Removed custom provider: {sub_args}")
+        else:
+            print_error(f"Provider '{sub_args}' not found.")
+        return
+
+    # /provider list
+    if sub == "list":
+        _show_provider_table()
+        return
+
+    # /provider — show picker
+    if not args:
+        _show_provider_table()
+        try:
+            choice = input("  Pick provider (name or number): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            return
+        if choice.isdigit():
+            providers = list(BUILTIN_PROVIDERS.keys())
+            cfg = load_config()
+            providers.extend(cfg.get("custom_providers", {}).keys())
+            idx = int(choice) - 1
+            if 0 <= idx < len(providers):
+                choice = providers[idx]
+        if choice:
+            os.environ["CORTEX_PROVIDER"] = choice
+            cfg = load_config()
+            cfg["default_provider"] = choice
+            save_config(cfg)
+            print_success(f"Provider set to: {choice}")
+        return
+
+    # /provider <name> — direct set
     os.environ["CORTEX_PROVIDER"] = args.strip()
+    cfg = load_config()
+    cfg["default_provider"] = args.strip()
+    save_config(cfg)
     print_success(f"Provider set to: {args.strip()}")
+
+def _show_provider_table():
+    cfg = load_config()
+    current = os.environ.get("CORTEX_PROVIDER", "gemini")
+    rows = []
+    all_providers = list(BUILTIN_PROVIDERS.items())
+    all_providers.extend([(k, f"{v['name']} (custom: {v['api_base']})")
+                         for k, v in cfg.get("custom_providers", {}).items()])
+    for i, (key, desc) in enumerate(all_providers, 1):
+        active = " [bold green]*[/bold green]" if RICH and key == current else " *" if key == current else ""
+        rows.append([str(i), key, desc, active.strip()])
+    print_table("AI Providers", ["#", "Key", "Description", "Active"], rows)
 
 def cmd_model(args):
     if not args:
-        print_dim(f"Current model: {os.environ.get('CORTEX_MODEL', 'gemini-2.0-flash')}")
+        _show_model_table()
+        try:
+            choice = input("  Pick model (name or number): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            return
+        if choice.isdigit():
+            all_models = []
+            for models in BUILTIN_MODELS.values():
+                all_models.extend(models)
+            cfg = load_config()
+            for prov in cfg.get("custom_providers", {}).values():
+                all_models.extend(prov.get("models", []))
+            idx = int(choice) - 1
+            if 0 <= idx < len(all_models):
+                choice = all_models[idx]
+        if choice:
+            os.environ["CORTEX_MODEL"] = choice
+            cfg = load_config()
+            cfg["default_model"] = choice
+            save_config(cfg)
+            print_success(f"Model set to: {choice}")
         return
+
     os.environ["CORTEX_MODEL"] = args.strip()
+    cfg = load_config()
+    cfg["default_model"] = args.strip()
+    save_config(cfg)
     print_success(f"Model set to: {args.strip()}")
+
+def _show_model_table():
+    current = os.environ.get("CORTEX_MODEL", "gemini-2.0-flash")
+    rows = []
+    idx = 1
+    for prov, models in BUILTIN_MODELS.items():
+        for m in models:
+            active = " [bold green]*[/bold green]" if RICH and m == current else " *" if m == current else ""
+            rows.append([str(idx), prov, m, active.strip()])
+            idx += 1
+    cfg = load_config()
+    for prov_key, prov_data in cfg.get("custom_providers", {}).items():
+        for m in prov_data.get("models", []):
+            active = " [bold green]*[/bold green]" if RICH and m == current else " *" if m == current else ""
+            rows.append([str(idx), prov_key, m, active.strip()])
+            idx += 1
+    print_table("AI Models", ["#", "Provider", "Model", "Active"], rows)
 
 # ─── Session Commands ────────────────────────────────────────────────────────
 
@@ -735,11 +1008,271 @@ def cmd_help(args):
   /help                 Show this help
   /quit                 Exit
 
-[dim]Tip: Type anything else to ask AI with knowledge base context.[/dim]"""
+[dim]Tip: Type anything else to ask AI with knowledge base context.[/dim]
+
+[bold cyan]Settings & Deploy:[/bold cyan]
+  /settings             Open interactive settings menu
+  /deploy               Trigger Render deploy via deploy hook
+  /sync github          Push config to GitHub
+  /sync render          Alias for /deploy
+  /honcho               Show Honcho memory status
+  /honcho enable <key>  Set Honcho API key
+  /honcho disable       Disable Honcho memory
+
+[bold cyan]Tab Completion:[/bold cyan]
+  Press [bold]TAB[/bold] after / to see all commands, or after a command for suggestions."""
     if RICH:
         console.print(Panel(help_text, box=ROUNDED, border_style="cyan"))
     else:
         print(help_text)
+
+# ─── Settings & Deploy Commands ───────────────────────────────────────────────
+
+def cmd_settings(args):
+    """Interactive settings menu."""
+    cfg = load_config()
+
+    def _show():
+        info = []
+        info.append(f"  1. API URL:          {cfg.get('api_url', 'not set')}")
+        info.append(f"  2. API Key:          {'***' + cfg.get('api_key', '')[-4:] if cfg.get('api_key') else 'not set'}")
+        info.append(f"  3. Default Provider: {os.environ.get('CORTEX_PROVIDER', 'gemini')}")
+        info.append(f"  4. Default Model:    {os.environ.get('CORTEX_MODEL', 'gemini-2.0-flash')}")
+        info.append(f"  5. Workspace:        {client.workspace}")
+        info.append(f"  6. GitHub Repo:      {cfg.get('github_repo', 'not set')}")
+        info.append(f"  7. Render Hook:      {cfg.get('render_deploy_hook', 'not set')}")
+        info.append(f"  8. Honcho API Key:   {'***' + cfg.get('honcho_api_key', '')[-4:] if cfg.get('honcho_api_key') else 'not set'}")
+        info.append(f"  9. Custom Providers: {len(cfg.get('custom_providers', {}))} configured")
+        info.append(f"  0. Exit settings")
+        print_panel("Settings", "\n".join(info))
+
+    while True:
+        _show()
+        try:
+            choice = input("  Setting to change (0-9): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            break
+        if choice == "0":
+            break
+        elif choice == "1":
+            url = input("  API URL: ").strip()
+            if url:
+                cfg["api_url"] = url
+                client.url = url.rstrip("/")
+                if client.key:
+                    client.headers = {"Authorization": f"Bearer {client.key}"}
+                save_config(cfg)
+                print_success("API URL updated.")
+        elif choice == "2":
+            key = input("  API Key: ").strip()
+            if key:
+                cfg["api_key"] = key
+                client.key = key
+                if client.url:
+                    client.headers = {"Authorization": f"Bearer {key}"}
+                save_config(cfg)
+                print_success("API Key updated.")
+        elif choice == "3":
+            _show_provider_table()
+            prov = input("  Provider key: ").strip()
+            if prov:
+                os.environ["CORTEX_PROVIDER"] = prov
+                cfg["default_provider"] = prov
+                save_config(cfg)
+                print_success(f"Default provider set to: {prov}")
+        elif choice == "4":
+            _show_model_table()
+            model = input("  Model name: ").strip()
+            if model:
+                os.environ["CORTEX_MODEL"] = model
+                cfg["default_model"] = model
+                save_config(cfg)
+                print_success(f"Default model set to: {model}")
+        elif choice == "5":
+            path = input("  Workspace path: ").strip()
+            if path and os.path.isdir(os.path.expanduser(path)):
+                abspath = os.path.abspath(os.path.expanduser(path))
+                client.workspace = abspath
+                os.chdir(abspath)
+                cfg["workspace"] = abspath
+                save_config(cfg)
+                print_success(f"Workspace set to: {abspath}")
+            else:
+                print_error("Invalid directory.")
+        elif choice == "6":
+            repo = input("  GitHub repo URL: ").strip()
+            if repo:
+                cfg["github_repo"] = repo
+                save_config(cfg)
+                print_success("GitHub repo URL updated.")
+        elif choice == "7":
+            hook = input("  Render deploy hook URL: ").strip()
+            if hook:
+                cfg["render_deploy_hook"] = hook
+                save_config(cfg)
+                print_success("Render deploy hook updated.")
+        elif choice == "8":
+            key = input("  Honcho API Key: ").strip()
+            if key:
+                cfg["honcho_api_key"] = key
+                save_config(cfg)
+                print_success("Honcho API key updated.")
+            else:
+                cfg["honcho_api_key"] = ""
+                save_config(cfg)
+                print_dim("Honcho API key cleared.")
+        elif choice == "9":
+            _manage_custom_providers()
+        else:
+            print_error("Invalid choice.")
+
+def _manage_custom_providers():
+    cfg = load_config()
+    providers = cfg.get("custom_providers", {})
+    if not providers:
+        print_dim("No custom providers configured.")
+        print_dim("Use /provider add <key> <name> <api_base> <api_key> to add one.")
+        return
+    rows = []
+    for key, data in providers.items():
+        rows.append([key, data.get("name", ""), data.get("api_base", ""), str(len(data.get("models", [])))])
+    print_table("Custom Providers", ["Key", "Name", "API Base", "Models"], rows)
+    key = input("  Provider key to remove (or Enter to skip): ").strip()
+    if key and key in providers:
+        del cfg["custom_providers"][key]
+        save_config(cfg)
+        print_success(f"Removed custom provider: {key}")
+
+def cmd_deploy(args):
+    """Trigger a Render deploy via deploy hook."""
+    cfg = load_config()
+    hook = cfg.get("render_deploy_hook", "")
+    if not hook:
+        print_error("No Render deploy hook configured.")
+        print_dim("  Set it via /settings (option 7) or add 'render_deploy_hook' to ~/.cortex/config.json")
+        return
+    print_dim("Triggering Render deploy...")
+    try:
+        if RICH:
+            with console.status("[bold cyan]Deploying...[/bold cyan]"):
+                r = requests.post(hook, timeout=30)
+        else:
+            r = requests.post(hook, timeout=30)
+        if r.status_code in (200, 201, 202, 204):
+            print_success("Deploy triggered! Check Render dashboard for status.")
+        else:
+            print_error(f"Deploy hook returned {r.status_code}: {r.text[:200]}")
+    except Exception as e:
+        print_error(f"Deploy failed: {e}")
+
+def cmd_sync(args):
+    """Sync config to GitHub or trigger Render deploy."""
+    parts = args.split(None, 1) if args else []
+    sub = parts[0] if parts else ""
+
+    if sub == "github":
+        cfg = load_config()
+        repo = cfg.get("github_repo", "")
+        token = cfg.get("github_token", "")
+        if not repo:
+            print_error("No GitHub repo configured. Set via /settings (option 6).")
+            return
+        if not token:
+            print_error("No GitHub token configured. Add 'github_token' to ~/.cortex/config.json")
+            return
+
+        config_path = os.path.expanduser("~/.cortex/config.json")
+        if not os.path.exists(config_path):
+            print_error("No config file to sync.")
+            return
+
+        import subprocess, tempfile
+        # Clone to temp dir, copy config, commit, push
+        tmpdir = tempfile.mkdtemp(prefix="cortex_sync_")
+        try:
+            repo_url = repo.replace("https://", f"https://{token}@")
+            subprocess.run(["git", "clone", "--depth", "1", repo_url, tmpdir],
+                          capture_output=True, check=True, timeout=30)
+            # Copy config into repo
+            dest = os.path.join(tmpdir, ".cortex", "config.json")
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            shutil.copy2(config_path, dest)
+            # Commit and push
+            subprocess.run(["git", "-C", tmpdir, "config", "user.name", "Cortex CLI"],
+                          capture_output=True, check=True)
+            subprocess.run(["git", "-C", tmpdir, "config", "user.email", "cortex@local"],
+                          capture_output=True, check=True)
+            subprocess.run(["git", "-C", tmpdir, "add", ".cortex/config.json"],
+                          capture_output=True, check=True)
+            result = subprocess.run(["git", "-C", tmpdir, "commit", "-m", "sync: update cortex config"],
+                                   capture_output=True, text=True)
+            if "nothing to commit" in result.stdout + result.stderr:
+                print_dim("Config is already up to date on GitHub.")
+            else:
+                subprocess.run(["git", "-C", tmpdir, "push", "origin", "HEAD"],
+                              capture_output=True, check=True, timeout=30)
+                print_success("Config synced to GitHub.")
+        except subprocess.CalledProcessError as e:
+            print_error(f"Git sync failed: {e.stderr if hasattr(e, 'stderr') else e}")
+        except Exception as e:
+            print_error(f"Sync failed: {e}")
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
+
+    elif sub == "render":
+        cmd_deploy("")
+    else:
+        print_error("Usage: /sync github | /sync render")
+        print_dim("  github — Push ~/.cortex/config.json to GitHub")
+        print_dim("  render — Trigger Render deploy via deploy hook")
+
+def cmd_honcho(args):
+    """Show or configure Honcho memory."""
+    parts = args.split(None, 1) if args else []
+    sub = parts[0] if parts else ""
+
+    if sub == "enable":
+        key = parts[1] if len(parts) > 1 else ""
+        if not key:
+            key = input("  Honcho API Key: ").strip()
+        if key:
+            cfg = load_config()
+            cfg["honcho_api_key"] = key
+            save_config(cfg)
+            print_success("Honcho enabled. API key saved.")
+            print_dim("  Note: The server must be redeployed with this key to activate Honcho.")
+        return
+
+    if sub == "disable":
+        cfg = load_config()
+        cfg["honcho_api_key"] = ""
+        save_config(cfg)
+        print_success("Honcho disabled.")
+        return
+
+    # Show status
+    cfg = load_config()
+    honcho_key = cfg.get("honcho_api_key", "")
+    ok, data = client.health()
+
+    info = []
+    if honcho_key:
+        info.append(f"  Status:   [green]Configured[/green]" if RICH else "  Status:   Configured")
+        info.append(f"  Key:      ***{honcho_key[-4:]}")
+    else:
+        info.append(f"  Status:   [dim]Not configured[/dim]" if RICH else "  Status:   Not configured")
+
+    if ok:
+        server_honcho = data.get("honcho", "unknown")
+        info.append(f"  Server:   {server_honcho}")
+    else:
+        info.append(f"  Server:   [red]Offline[/red]" if RICH else "  Server:   Offline")
+
+    info.append("")
+    info.append("  /honcho enable <key>   — Set Honcho API key")
+    info.append("  /honcho disable        — Disable Honcho memory")
+
+    print_panel("Honcho Memory", "\n".join(info))
 
 # ─── Command Router ──────────────────────────────────────────────────────────
 
@@ -759,6 +1292,8 @@ SESSION_COMMANDS = {
     "/help": cmd_help, "/quit": lambda _: "quit",
     "/ask": cmd_ask, "/chat": cmd_chat,
     "/provider": cmd_provider, "/model": cmd_model,
+    "/settings": cmd_settings, "/deploy": cmd_deploy,
+    "/sync": cmd_sync, "/honcho": cmd_honcho,
 }
 
 def dispatch(line):
@@ -940,9 +1475,11 @@ def main():
             "dim": "dim",
             "notebook": "bold green",
         })
+        cortex_completer = CortexCompleter()
         session = PromptSession(
             history=FileHistory(HISTORY_FILE) if os.path.exists(os.path.dirname(HISTORY_FILE)) else None,
             style=style,
+            completer=cortex_completer,
         )
 
         while True:
