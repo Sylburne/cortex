@@ -704,40 +704,40 @@ def cmd_help(args):
     help_text = """[bold]Commands:[/bold]
 
 [bold cyan]Filesystem:[/bold cyan]
-  ls [path]           List directory contents
-  cd [path]           Change working directory
-  pwd                 Show working directory
-  cat <file>          Display file with syntax highlighting
-  read <file>         Read file contents
-  write <file>        Create/edit a file
-  mkdir <dir>         Create directory
-  rm <path>           Remove file or directory
-  tree [path]         Show directory tree
+  ls [[path]]           List directory contents
+  cd [[path]]           Change working directory
+  pwd                   Show working directory
+  cat <file>            Display file with syntax highlighting
+  read <file>           Read file contents
+  write <file>          Create/edit a file
+  mkdir <dir>           Create directory
+  rm <path>             Remove file or directory
+  tree [[path]]         Show directory tree
 
 [bold cyan]Knowledge Base:[/bold cyan]
-  /kb list            List all notebooks
-  /kb create <name>   Create a new notebook
-  /kb upload <file>   Upload files to active notebook
-  /kb search <query>  Semantic search
-  /kb select <id>     Set active notebook
-  /kb status          Show active notebook info
+  /kb list              List all notebooks
+  /kb create <name>     Create a new notebook
+  /kb upload <file...>  Upload files to active notebook
+  /kb search <query>    Semantic search
+  /kb select <id>       Set active notebook
+  /kb status            Show active notebook info
 
 [bold cyan]AI:[/bold cyan]
-  /ask <question>     Ask AI with knowledge base context
-  /chat               Enter interactive chat mode
-  /provider <name>    Switch AI provider (gemini/openai/anthropic/qwen/ollama/huggingface)
-  /model <name>       Switch AI model
+  /ask <question>       Ask AI with knowledge base context
+  /chat                 Enter interactive chat mode
+  /provider <name>      Switch AI provider (gemini/openai/anthropic/qwen/ollama/huggingface)
+  /model <name>         Switch AI model
 
 [bold cyan]Session:[/bold cyan]
-  /login              Configure Cortex connection
-  /workspace <path>   Set working directory
-  /status             Show connection and session status
-  /help               Show this help
-  /quit               Exit
+  /login                Configure Cortex connection
+  /workspace <path>     Set working directory
+  /status               Show connection and session status
+  /help                 Show this help
+  /quit                 Exit
 
 [dim]Tip: Type anything else to ask AI with knowledge base context.[/dim]"""
     if RICH:
-        console.print(Panel(Markdown(help_text), box=ROUNDED, border_style="cyan"))
+        console.print(Panel(help_text, box=ROUNDED, border_style="cyan"))
     else:
         print(help_text)
 
