@@ -68,11 +68,11 @@ python cortex.py
 
 ### Connect via MCP (AI Assistant Integration)
 
-Cortex exposes a full MCP (Model Context Protocol) server so AI assistants like Qoder and Claude Desktop can directly search, chat, and manage your knowledge base.
+Cortex exposes a full MCP (Model Context Protocol) server so AI assistants can directly search, chat, and manage your knowledge base.
 
-#### Qoder Setup
+> **Prerequisite:** Run `cortex login` first to configure your credentials. The MCP server reads from `~/.cortex/config.json`.
 
-Add this to your Qoder MCP settings (`.qoder/mcp.json` or via the MCP settings UI):
+All setups use the same server configuration — replace `/path/to/cortex` with the actual path to your cortex repository.
 
 ```json
 {
@@ -86,23 +86,29 @@ Add this to your Qoder MCP settings (`.qoder/mcp.json` or via the MCP settings U
 }
 ```
 
-> **Note:** Replace `/path/to/cortex` with the actual path to your cortex repository. The MCP server reads credentials from `~/.cortex/config.json` — run `cortex login` first to configure.
+#### Qoder
 
-#### Claude Desktop Setup
+Add to `.qoder/mcp.json` or via the MCP settings UI.
 
-Add to `claude_desktop_config.json`:
+#### Claude Desktop
 
-```json
-{
-  "mcpServers": {
-    "cortex": {
-      "command": "python",
-      "args": ["/path/to/cortex-mcp/server.py"],
-      "cwd": "/path/to/cortex-mcp"
-    }
-  }
-}
-```
+Add to `claude_desktop_config.json` (`%APPDATA%\Claude` on Windows, `~/Library/Application Support/Claude` on macOS).
+
+#### VS Code / GitHub Copilot
+
+Add to `.vscode/mcp.json` in your workspace or use the Copilot Chat MCP settings.
+
+#### Gemini CLI
+
+Add to `~/.gemini/mcp.json` or pass via `gemini mcp add cortex -- python /path/to/cortex/cortex-mcp/server.py`.
+
+#### OpenAI Codex CLI
+
+Add to `~/.codex/mcp.json` or use `codex mcp add cortex -- python /path/to/cortex/cortex-mcp/server.py`.
+
+#### Generic / Other MCP Clients
+
+Add the server block above to any MCP-compatible client's `mcp.json` configuration file. Works with any tool that supports the Model Context Protocol — Cursor, Continue.dev, Zed, Goose, and others.
 
 #### Available MCP Tools
 

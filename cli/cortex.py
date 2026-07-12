@@ -18,6 +18,10 @@ import os
 import sys
 import json
 import time
+
+# Force UTF-8 on Windows to handle Unicode box-drawing characters
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import shutil
 import requests
 from pathlib import Path
@@ -67,6 +71,10 @@ try:
     PROMPT_TOOLKIT = True
 except ImportError:
     PROMPT_TOOLKIT = False
+    # Dummy fallbacks so the file parses without prompt_toolkit installed
+    class Completer:
+        pass
+    Completion = None
 
 # ─── Built-in Provider & Model Data ───────────────────────────────────────────
 
