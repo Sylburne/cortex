@@ -79,14 +79,14 @@ Add this to your Qoder MCP settings (`.qoder/mcp.json` or via the MCP settings U
   "mcpServers": {
     "cortex": {
       "command": "python",
-      "args": ["c:/Projects/Projrct Aeon/qmind/cortex-mcp/server.py"],
-      "cwd": "c:/Projects/Projrct Aeon/qmind/cortex-mcp"
+      "args": ["/path/to/cortex/cortex-mcp/server.py"],
+      "cwd": "/path/to/cortex/cortex-mcp"
     }
   }
 }
 ```
 
-> **Note:** Adjust paths to match your local installation. The MCP server reads credentials from `~/.cortex/config.json` — run `cortex login` first to configure.
+> **Note:** Replace `/path/to/cortex` with the actual path to your cortex repository. The MCP server reads credentials from `~/.cortex/config.json` — run `cortex login` first to configure.
 
 #### Claude Desktop Setup
 
@@ -189,7 +189,7 @@ AI (gemini/gemini-2.5-pro):
 | | `/model <name>` | Set model directly |
 | | `/provider` | Interactive provider picker |
 | | `/provider <name>` | Set provider directly |
-| | `/provider add <key> <name> <url> <key>` | Add custom provider |
+| | `/provider add <name> <api_base> <key>` | Add custom provider |
 | | `/provider remove <key>` | Remove custom provider |
 | | `/provider list` | List all providers |
 | **Settings & Sync** | `/settings` | Interactive settings menu |
@@ -219,7 +219,7 @@ Press **TAB** to auto-complete:
 Add any OpenAI-compatible API as a custom provider:
 
 ```
-> /provider add my-llm "My LLM" https://api.example.com/v1 sk-xxx
+> /provider add "My LLM" https://api.example.com/v1 sk-xxx
   Added custom provider: My LLM (my-llm)
 
 > /provider

@@ -777,14 +777,15 @@ def cmd_provider(args):
     sub = parts[0] if parts else ""
     sub_args = parts[1] if len(parts) > 1 else ""
 
-    # /provider add <key> <name> <api_base> <api_key>
+    # /provider add <name> <api_base> <key>
     if sub == "add":
-        add_parts = sub_args.split(None, 3) if sub_args else []
-        if len(add_parts) < 4:
-            print_error("Usage: /provider add <key> <name> <api_base> <api_key>")
-            print_dim('  Example: /provider add my-llm "My LLM" https://api.example.com/v1 sk-xxx')
+        add_parts = sub_args.split(None, 2) if sub_args else []
+        if len(add_parts) < 3:
+            print_error("Usage: /provider add <name> <api_base> <key>")
+            print_dim('  Example: /provider add "My LLM" https://api.example.com/v1 sk-xxx')
             return
-        key, name, api_base, api_key = add_parts
+        name, api_base, api_key = add_parts
+        key = name.lower().replace(" ", "-").replace("_", "-")
         cfg = load_config()
         if "custom_providers" not in cfg:
             cfg["custom_providers"] = {}
@@ -1034,22 +1035,23 @@ def cmd_settings(args):
 
     def _show():
         info = []
-        info.append(f"  1. API URL:          {cfg.get('api_url', 'not set')}")
-        info.append(f"  2. API Key:          {'***' + cfg.get('api_key', '')[-4:] if cfg.get('api_key') else 'not set'}")
-        info.append(f"  3. Default Provider: {os.environ.get('CORTEX_PROVIDER', 'gemini')}")
-        info.append(f"  4. Default Model:    {os.environ.get('CORTEX_MODEL', 'gemini-2.0-flash')}")
-        info.append(f"  5. Workspace:        {client.workspace}")
-        info.append(f"  6. GitHub Repo:      {cfg.get('github_repo', 'not set')}")
-        info.append(f"  7. Render Hook:      {cfg.get('render_deploy_hook', 'not set')}")
-        info.append(f"  8. Honcho API Key:   {'***' + cfg.get('honcho_api_key', '')[-4:] if cfg.get('honcho_api_key') else 'not set'}")
-        info.append(f"  9. Custom Providers: {len(cfg.get('custom_providers', {}))} configured")
+        info.append(f"  1. API URL:           {cfg.get('api_url', 'not set')}")
+        info.append(f"  2. API Key:           {'***' + cfg.get('api_key', '')[-4:] if cfg.get('api_key') else 'not set'}")
+        info.append(f"  3. Default Provider:  {os.environ.get('CORTEX_PROVIDER', 'gemini')}")
+        info.append(f"  4. Default Model:     {os.environ.get('CORTEX_MODEL', 'gemini-2.0-flash')}")
+        info.append(f"  5. Embedding Provider:{cfg.get('embedding_provider', 'gemini')}")
+        info.append(f"  6. Custom Providers:  {len(cfg.get('custom_providers', {}))} configured")
+        info.append(f"  7. GitHub Repo:       {cfg.get('github_repo', 'not set')}")
+        info.append(f"  8. Render Hook:       {cfg.get('render_deploy_hook', 'not set')}")
+        info.append(f"  9. Honcho API Key:    {'***' + cfg.get('honcho_api_key', '')[-4:] if cfg.get('honcho_api_key') else 'not set'}")
+        info.append(f" 10. Workspace:         {client.workspace}")
         info.append(f"  0. Exit settings")
         print_panel("Settings", "\n".join(info))
 
     while True:
         _show()
         try:
-            choice = input("  Setting to change (0-9): ").strip()
+            choice = input("  Setting to change (0-10): ").strip()
         except (EOFError, KeyboardInterrupt):
             break
         if choice == "0":
@@ -1089,6 +1091,36 @@ def cmd_settings(args):
                 save_config(cfg)
                 print_success(f"Default model set to: {model}")
         elif choice == "5":
+            prov = input("  Embedding provider (gemini/openai/huggingface/ollama/qwen): ").strip()
+            if prov:
+                cfg["embedding_provider"] = prov
+                save_config(cfg)
+                print_success(f"Embedding provider set to: {prov}")
+        elif choice == "6":
+            _manage_custom_providers()
+        elif choice == "7":
+            repo = input("  GitHub repo URL: ").strip()
+            if repo:
+                cfg["github_repo"] = repo
+                save_config(cfg)
+                print_success("GitHub repo URL updated.")
+        elif choice == "8":
+            hook = input("  Render deploy hook URL: ").strip()
+            if hook:
+                cfg["render_deploy_hook"] = hook
+                save_config(cfg)
+                print_success("Render deploy hook updated.")
+        elif choice == "9":
+            key = input("  Honcho API Key: ").strip()
+            if key:
+                cfg["honcho_api_key"] = key
+                save_config(cfg)
+                print_success("Honcho API key updated.")
+            else:
+                cfg["honcho_api_key"] = ""
+                save_config(cfg)
+                print_dim("Honcho API key cleared.")
+        elif choice == "10":
             path = input("  Workspace path: ").strip()
             if path and os.path.isdir(os.path.expanduser(path)):
                 abspath = os.path.abspath(os.path.expanduser(path))
@@ -1099,30 +1131,6 @@ def cmd_settings(args):
                 print_success(f"Workspace set to: {abspath}")
             else:
                 print_error("Invalid directory.")
-        elif choice == "6":
-            repo = input("  GitHub repo URL: ").strip()
-            if repo:
-                cfg["github_repo"] = repo
-                save_config(cfg)
-                print_success("GitHub repo URL updated.")
-        elif choice == "7":
-            hook = input("  Render deploy hook URL: ").strip()
-            if hook:
-                cfg["render_deploy_hook"] = hook
-                save_config(cfg)
-                print_success("Render deploy hook updated.")
-        elif choice == "8":
-            key = input("  Honcho API Key: ").strip()
-            if key:
-                cfg["honcho_api_key"] = key
-                save_config(cfg)
-                print_success("Honcho API key updated.")
-            else:
-                cfg["honcho_api_key"] = ""
-                save_config(cfg)
-                print_dim("Honcho API key cleared.")
-        elif choice == "9":
-            _manage_custom_providers()
         else:
             print_error("Invalid choice.")
 
@@ -1131,7 +1139,7 @@ def _manage_custom_providers():
     providers = cfg.get("custom_providers", {})
     if not providers:
         print_dim("No custom providers configured.")
-        print_dim("Use /provider add <key> <name> <api_base> <api_key> to add one.")
+        print_dim("Use /provider add <name> <api_base> <key> to add one.")
         return
     rows = []
     for key, data in providers.items():
@@ -1149,7 +1157,7 @@ def cmd_deploy(args):
     hook = cfg.get("render_deploy_hook", "")
     if not hook:
         print_error("No Render deploy hook configured.")
-        print_dim("  Set it via /settings (option 7) or add 'render_deploy_hook' to ~/.cortex/config.json")
+        print_dim("  Set it via /settings (option 8) or add 'render_deploy_hook' to ~/.cortex/config.json")
         return
     print_dim("Triggering Render deploy...")
     try:
@@ -1175,7 +1183,7 @@ def cmd_sync(args):
         repo = cfg.get("github_repo", "")
         token = cfg.get("github_token", "")
         if not repo:
-            print_error("No GitHub repo configured. Set via /settings (option 6).")
+            print_error("No GitHub repo configured. Set via /settings (option 7).")
             return
         if not token:
             print_error("No GitHub token configured. Add 'github_token' to ~/.cortex/config.json")
